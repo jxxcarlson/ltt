@@ -13,7 +13,7 @@ app =
         { init = init
         , update = update
         , subscriptions = \m -> Sub.none
-        , updateFromClient = updateFromClient
+        , updateFromFrontend = updateFromFrontend
         }
 
 
@@ -44,8 +44,8 @@ update msg model =
                     ( model, Cmd.none )
 
 
-updateFromClient : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
-updateFromClient clientId msg model =
+updateFromFrontend : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontend clientId msg model =
     case msg of
         NoOpToBackend ->
             ( model, Cmd.none )

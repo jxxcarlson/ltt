@@ -132,7 +132,7 @@ init =
       , filterState = NoGrouping
       , outputUnit = Hours
       }
-    , sendToBackend timeoutInMs SentToBackendResult ClientJoin
+    , sendToBackend timeoutInMs SentToBackendResult NoOpToBackend
     )
 
 
@@ -140,13 +140,9 @@ timeoutInMs =
     5 * 1000
 
 
-sendToBackend : Milliseconds -> (Result WsError () -> FrontendMsg) -> toBackend -> Cmd FrontendMsg
+sendToBackend : Milliseconds -> (Result WsError () -> FrontendMsg) -> ToBackend -> Cmd FrontendMsg
 sendToBackend =
     Frontend.sendToBackend
-
-
-type alias Flags =
-    {}
 
 
 subscriptions model =
