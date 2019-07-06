@@ -14,6 +14,7 @@ import DateTime exposing (NaiveDateTime(..), rataDieFromNaiveDateTime)
 import List.Extra as LE
 import Time exposing (Posix)
 import TypedTime exposing (TypedTime(..), Unit(..))
+import User exposing (UserId)
 
 
 type alias Log =
@@ -21,8 +22,16 @@ type alias Log =
     , counter : Int
     , name : String
     , note : String
-    , userId : Int
+    , userName : UserId
     , data : List Event
+    }
+
+
+type alias Event =
+    { id : Int
+    , note : String
+    , duration : TypedTime
+    , insertedAt : Posix
     }
 
 
@@ -38,14 +47,6 @@ type DateFilter
 
 type Duration
     = Duration Float
-
-
-type alias Event =
-    { id : Int
-    , note : String
-    , duration : TypedTime
-    , insertedAt : Posix
-    }
 
 
 filter : String -> List Log -> List Log

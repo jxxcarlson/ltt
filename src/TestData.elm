@@ -1,4 +1,4 @@
-module TestData exposing (e1, e2, f1, f2, log, log2)
+module TestData exposing (e1, e2, f1, f2, log1, log2)
 
 import DateTime exposing (NaiveDateTime(..))
 import Log exposing (..)
@@ -42,22 +42,12 @@ f2 =
     }
 
 
-type alias Log =
-    { id : Int
-    , counter : Int
-    , name : String
-    , note : String
-    , userId : Int
-    , data : List Event
-    }
-
-
-log =
+log1 =
     { id = 1
     , counter = 2
     , name = "Piano practice"
     , note = "Practice for recital"
-    , userId = 1
+    , userName = "jxxcarlson"
     , data = [ e1, e2 ]
     }
 
@@ -67,6 +57,6 @@ log2 =
     , counter = 2
     , name = "Elm projects"
     , note = "Get ready for conference"
-    , userId = 1
+    , userName = "jxxcarlson"
     , data = [ f1, f2 ]
     }

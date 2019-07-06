@@ -1,1 +1,1 @@
-lamdera make src/Main.elm  
+lamdera make src/Frontend.elm  
