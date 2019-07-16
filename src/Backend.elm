@@ -17,6 +17,12 @@ app =
         }
 
 
+
+--
+-- MODEL
+--
+
+
 type alias Model =
     { logs : List Log, clients : Set ClientId }
 
@@ -52,6 +58,9 @@ updateFromFrontend clientId msg model =
 
         RequestLogs ->
             ( model, sendToFrontend clientId (SendLogsToFrontend model.logs) )
+
+        SendLogsToBackend logList ->
+            ( { model | logs = logList }, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )

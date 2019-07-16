@@ -13,6 +13,7 @@ type ToBackend
     = NoOpToBackend
     | ClientJoin
     | RequestLogs
+    | SendLogsToBackend (List Log)
 
 
 type ToFrontend

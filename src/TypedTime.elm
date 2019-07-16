@@ -207,9 +207,11 @@ hmStringFromSeconds s =
 --
 
 
-decodeHM : String -> Maybe Float
+decodeHM : String -> Maybe TypedTime
 decodeHM str =
-    Parser.run parseTime str |> Result.toMaybe
+    Parser.run parseTime str
+        |> Result.toMaybe
+        |> Maybe.map (TypedTime Seconds)
 
 
 {-| run parseHM takes a string in the format hh:mm as

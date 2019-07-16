@@ -13,7 +13,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Graph exposing (Option(..))
-import Html exposing (Html)
+import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
 import Log exposing (..)
@@ -132,7 +132,10 @@ init =
       , filterState = NoGrouping
       , outputUnit = Hours
       }
-    , sendToBackend timeoutInMs SentToBackendResult ClientJoin
+    , Cmd.batch
+        [ sendToBackend timeoutInMs SentToBackendResult ClientJoin
+        , sendToBackend timeoutInMs SentToBackendResult RequestLogs
+        ]
     )
 
 
@@ -218,15 +221,18 @@ update msg model =
         MakeEvent ->
             case model.maybeCurrentLog of
                 Nothing ->
+                    let
+                        _ =
+                            Debug.log "BAD BRANCH (1)"
+                    in
                     ( { model | message = "No log available to make event" }, Cmd.none )
 
                 Just log ->
-                    case TypedTime.decodeHM model.eventDurationString of
-                        Nothing ->
-                            ( { model | message = "Bad format for time" }, Cmd.none )
-
-                        Just duration ->
-                            ( createEvent (TypedTime Seconds duration) model, Cmd.none )
+                    let
+                        r =
+                            addEventUsingString (Debug.log "EVT STRING" model.eventDurationString) model.currentTime log model.logs
+                    in
+                    ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
         -- TIMER
         TimeChange time ->
@@ -279,11 +285,27 @@ update msg model =
                     )
 
                 TCLog ->
-                    let
-                        duration =
-                            TypedTime.sum [ model.accumulatedTime, model.elapsedTime ]
-                    in
-                    ( createEvent duration model, Cmd.none )
+                    case model.maybeCurrentLog of
+                        Nothing ->
+                            let
+                                _ =
+                                    Debug.log "BAD BRANCH"
+                            in
+                            ( model, Cmd.none )
+
+                        Just log ->
+                            let
+                                _ =
+                                    Debug.log "BAD BRANCH"
+
+                                duration =
+                                    Debug.log "TIME TO LOG" <|
+                                        TypedTime.sum [ Debug.log "ACC" model.accumulatedTime, Debug.log "ELAPSED" model.elapsedTime ]
+
+                                r =
+                                    addEvent duration model.currentTime log model.logs
+                            in
+                            ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
                 TCReset ->
                     ( { model
@@ -846,27 +868,39 @@ setCurrentEventButton model event index =
 --
 
 
-createEvent : TypedTime -> Model -> Model
-createEvent duration model =
-    let
-        newEvent =
-            { note = ""
-            , id = -1
-            , duration = duration
-            , insertedAt = model.currentTime
-            }
-    in
-    case model.maybeCurrentLog of
-        Nothing ->
-            { model | timerState = TSInitial }
+type alias UpdateLogRecord =
+    { currentLog : Log
+    , logList : List Log
+    , cmd : Cmd FrontendMsg
+    }
 
-        Just currentLog ->
-            let
-                newLog =
-                    { currentLog | data = currentLog.data ++ [ newEvent ] }
-            in
-            { model
-                | timerState = TSInitial
-                , doUpdateElapsedTime = False
-                , maybeCurrentLog = Just newLog
-            }
+
+addEventUsingString : String -> Posix -> Log -> List Log -> UpdateLogRecord
+addEventUsingString eventDurationString currentTime log logList =
+    case TypedTime.decodeHM eventDurationString of
+        Nothing ->
+            { currentLog = log, logList = logList, cmd = Cmd.none }
+
+        Just duration ->
+            addEvent duration currentTime log logList
+
+
+addEvent : TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
+addEvent duration currentTime log logList =
+    let
+        newLog =
+            Log.insertEvent "" duration currentTime log
+
+        newLogs =
+            Log.replaceLog newLog logList
+
+        cmd =
+            sendToBackend timeoutInMs SentToBackendResult (SendLogsToBackend newLogs)
+    in
+    { currentLog = newLog, logList = newLogs, cmd = cmd }
+
+
+
+--
+-- END
+--

@@ -8,6 +8,8 @@ module Log exposing
     , eventsByDay
     , filter
     , groupingFilter
+    , insertEvent
+    , replaceLog
     )
 
 import DateTime exposing (NaiveDateTime(..), rataDieFromNaiveDateTime)
@@ -255,3 +257,27 @@ sumList list =
 rataDie : NaiveDateTime -> Int
 rataDie (NaiveDateTime str) =
     DateTime.rataDieFromNaiveDateTime str - 737148
+
+
+
+--
+--
+--
+
+
+replaceLog : Log -> List Log -> List Log
+replaceLog log listLogs =
+    LE.setIf (\item -> item.id == log.id) log listLogs
+
+
+insertEvent : String -> TypedTime -> Posix -> Log -> Log
+insertEvent note duration currentTime log =
+    let
+        newEvent =
+            { note = note
+            , id = log.counter + 1
+            , duration = duration
+            , insertedAt = currentTime
+            }
+    in
+    { log | data = newEvent :: log.data, counter = log.counter + 1 }
