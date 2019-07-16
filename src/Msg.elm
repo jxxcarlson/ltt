@@ -2,17 +2,27 @@ module Msg exposing (BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBacken
 
 import Browser exposing (UrlRequest(..))
 import Lamdera.Types exposing (ClientId, WsError)
-import Log exposing (Event, EventGrouping(..))
+import Log exposing (Event, EventGrouping(..), Log)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
 import User exposing (UserId)
 
 
+type ToBackend
+    = NoOpToBackend
+    | ClientJoin
+    | RequestLogs
+
+
+type ToFrontend
+    = NoOpToFrontend
+    | SendLogsToFrontend (List Log)
+
+
 type FrontendMsg
     = NoOpFrontendMsg
     | SendUserLogs UserId
-    | ClientJoin
     | SentToBackendResult (Result WsError ())
       --
     | ChangeUrl Url
@@ -38,14 +48,6 @@ type TimerCommand
     | TCReset
 
 
-type ToBackend
-    = NoOpToBackend
-
-
 type BackendMsg
     = NoOpBackendMsg
     | SentToFrontendResult ClientId (Result WsError ())
-
-
-type ToFrontend
-    = NoOpToFrontend

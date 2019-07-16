@@ -1,5 +1,4 @@
 rm -rf elm-stuff
-rm -rf ~/.elm
-rm -rf ~/.lamdera
+rm -rf /Users/carlson/.lamdera/elm
 lamdera make src/Frontend.elm
 lamdera make src/Backend.elm

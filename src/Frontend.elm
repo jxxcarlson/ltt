@@ -132,7 +132,7 @@ init =
       , filterState = NoGrouping
       , outputUnit = Hours
       }
-    , sendToBackend timeoutInMs SentToBackendResult NoOpToBackend
+    , sendToBackend timeoutInMs SentToBackendResult ClientJoin
     )
 
 
@@ -160,6 +160,9 @@ updateFromBackend msg model =
     ( case msg of
         NoOpToFrontend ->
             model
+
+        SendLogsToFrontend newLogList ->
+            { model | logs = newLogList }
     , Cmd.none
     )
 
@@ -171,9 +174,6 @@ update msg model =
             ( model, Cmd.none )
 
         SendUserLogs userId ->
-            ( model, Cmd.none )
-
-        ClientJoin ->
             ( model, Cmd.none )
 
         SentToBackendResult result ->

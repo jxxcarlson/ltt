@@ -49,3 +49,23 @@ updateFromFrontend clientId msg model =
     case msg of
         NoOpToBackend ->
             ( model, Cmd.none )
+
+        RequestLogs ->
+            ( model, sendToFrontend clientId (SendLogsToFrontend model.logs) )
+
+        ClientJoin ->
+            ( model, Cmd.none )
+
+
+sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
+sendToFrontend clientId msg =
+    Lamdera.Backend.sendToFrontend 1000 clientId (\_ -> NoOpBackendMsg) msg
+
+
+
+-- sendToFrontend :
+--     Milliseconds
+--     -> ClientId
+--     -> (Result WsError () -> backendMsg)
+--     -> toFrontend
+--     -> Cmd backendMsg
