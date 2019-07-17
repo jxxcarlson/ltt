@@ -17,7 +17,7 @@ import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
 import Log exposing (..)
-import Msg exposing (BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..))
+import Msg exposing (AppMode(..), BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..))
 import Style
 import Task
 import TestData exposing (..)
@@ -49,11 +49,6 @@ app =
 --
 
 
-type AppMode
-    = Logging
-    | Editing
-
-
 type Visibility
     = Visible
     | Hidden
@@ -83,23 +78,29 @@ type TimerState
 
 type alias Model =
     { input : String
+    , appMode : AppMode
     , message : String
+    , visibilityOfLogList : Visibility
+
+    --
     , eventDurationString : String
     , logs : List Log
     , maybeCurrentLog : Maybe Log
     , maybeCurrentEvent : Maybe Event
     , logFilterString : String
-    , appMode : AppMode
-    , visibilityOfLogList : Visibility
+    , filterState : EventGrouping
+
+    --
     , beginTime : Maybe Posix
     , currentTime : Posix
     , elapsedTime : TypedTime
     , accumulatedTime : TypedTime
     , doUpdateElapsedTime : Bool
     , timerState : TimerState
+
+    --
     , dateFilter : DateFilter
     , timeZoneOffset : Int
-    , filterState : EventGrouping
     , outputUnit : Unit
     }
 
@@ -175,6 +176,9 @@ update msg model =
     case msg of
         NoOpFrontendMsg ->
             ( model, Cmd.none )
+
+        SetAppMode mode ->
+            ( { model | appMode = mode }, Cmd.none )
 
         SendUserLogs userId ->
             ( model, Cmd.none )
@@ -334,8 +338,26 @@ mainView : Model -> Element FrontendMsg
 mainView model =
     column []
         [ header model
-        , mainRow model
+        , case model.appMode of
+            UserValidation ->
+                userValidationView model
+
+            Logging ->
+                masterLogView model
+
+            Editing ->
+                editingView model
         ]
+
+
+userValidationView : Model -> Element FrontendMsg
+userValidationView model =
+    row [] [ el [] (text "User view") ]
+
+
+editingView : Model -> Element FrontendMsg
+editingView model =
+    row [] [ el [] (text "User view") ]
 
 
 
@@ -350,8 +372,9 @@ header model =
         [ width fill
         , paddingXY 40 8
         , Background.color Style.charcoal
+        , spacing 12
         ]
-        [ toggleLogsButton model ]
+        [ userValidationModeButton model, loggingModeButton model, editingModeButton model, toggleLogsButton model ]
 
 
 toggleLogsButton : Model -> Element FrontendMsg
@@ -366,14 +389,38 @@ toggleLogsButton model =
         }
 
 
+userValidationModeButton : Model -> Element FrontendMsg
+userValidationModeButton model =
+    Input.button Style.headerButton
+        { onPress = Just (SetAppMode UserValidation)
+        , label = Element.text "User"
+        }
+
+
+loggingModeButton : Model -> Element FrontendMsg
+loggingModeButton model =
+    Input.button Style.headerButton
+        { onPress = Just (SetAppMode Logging)
+        , label = Element.text "Logs"
+        }
+
+
+editingModeButton : Model -> Element FrontendMsg
+editingModeButton model =
+    Input.button Style.headerButton
+        { onPress = Just (SetAppMode Editing)
+        , label = Element.text "Edit"
+        }
+
+
 
 --
 -- MAIN ROW
 --
 
 
-mainRow : Model -> Element FrontendMsg
-mainRow model =
+masterLogView : Model -> Element FrontendMsg
+masterLogView model =
     row (Style.mainColumn fill fill ++ [ spacing 12, padding 40, Background.color (Style.makeGrey 0.9) ])
         [ -- filterPanel model
           showIf (model.visibilityOfLogList == Visible) (logListPanel model)
@@ -851,6 +898,9 @@ indexWidth appMode =
         Editing ->
             60
 
+        UserValidation ->
+            60
+
 
 indexButton : Model -> Int -> Event -> Element FrontendMsg
 indexButton model k event =
@@ -860,6 +910,9 @@ indexButton model k event =
 
         Editing ->
             setCurrentEventButton model event k
+
+        UserValidation ->
+            Element.none
 
 
 setCurrentEventButton : Model -> Event -> Int -> Element FrontendMsg

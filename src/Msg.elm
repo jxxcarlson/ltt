@@ -1,4 +1,11 @@
-module Msg exposing (BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..))
+module Msg exposing
+    ( AppMode(..)
+    , BackendMsg(..)
+    , FrontendMsg(..)
+    , TimerCommand(..)
+    , ToBackend(..)
+    , ToFrontend(..)
+    )
 
 import Browser exposing (UrlRequest(..))
 import Lamdera.Types exposing (ClientId, WsError)
@@ -24,6 +31,7 @@ type ToFrontend
 
 type FrontendMsg
     = NoOpFrontendMsg
+    | SetAppMode AppMode
     | SendUserLogs UserId
     | SentToBackendResult (Result WsError ())
       --
@@ -53,3 +61,9 @@ type TimerCommand
 type BackendMsg
     = NoOpBackendMsg
     | SentToFrontendResult ClientId (Result WsError ())
+
+
+type AppMode
+    = Logging
+    | Editing
+    | UserValidation
