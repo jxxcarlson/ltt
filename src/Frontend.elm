@@ -903,7 +903,7 @@ addEvent duration currentTime log logList =
             Log.replaceLog newLog logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogsToBackend newLogs)
+            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend newLog)
     in
     { currentLog = newLog, logList = newLogs, cmd = cmd }
 

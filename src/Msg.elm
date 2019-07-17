@@ -14,6 +14,7 @@ type ToBackend
     | ClientJoin
     | RequestLogs
     | SendLogsToBackend (List Log)
+    | SendLogToBackend Log
 
 
 type ToFrontend
