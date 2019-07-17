@@ -522,8 +522,8 @@ graph model events_ =
 
 newEventPanel : Int -> Model -> Element FrontendMsg
 newEventPanel w model =
-    column [ Border.width 1, padding 12, spacing 24, width (px w) ]
-        [ row [ spacing 12 ] [ submitEventButton, inputEventDuration model ]
+    column [ spacing 24, width (px w) ]
+        [ row [ Border.width 1, padding 12, spacing 12, width (px 300) ] [ submitEventButton, inputEventDuration model ]
         , largeElapsedTimePanel model
         ]
 
@@ -595,7 +595,7 @@ filterByDayButton model =
 
 largeElapsedTimePanel : Model -> Element FrontendMsg
 largeElapsedTimePanel model =
-    column [ spacing 12 ]
+    column [ spacing 12, Border.width 1, padding 12, width (px 300) ]
         [ timerDisplay model
         , timerControls model
         ]
