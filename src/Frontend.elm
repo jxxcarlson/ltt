@@ -497,13 +497,21 @@ eventPanel model =
                             Log.eventsByDay events2
             in
             column [ Font.size 12, spacing 36, moveRight 40, width (px 450) ]
-                [ row [ moveLeft 40 ] [ Graph.barChart (gA model) (prepareData (getScaleFactor model) events) |> Element.html ]
+                [ row [ moveLeft 40 ] [ graph model events ]
                 , row [ spacing 16 ]
                     [ row [ spacing 8 ] [ setMinutesButton model, setHoursButton model ]
                     , row [ spacing 8 ] [ el [ Font.bold, Font.size 14 ] (text "Group:"), noFilterButton model, filterByDayButton model ]
                     ]
                 , newEventPanel 350 model
                 ]
+
+
+graph model events_ =
+    let
+        events__ =
+            List.reverse events_
+    in
+    Graph.barChart (gA model) (prepareData (getScaleFactor model) events__) |> Element.html
 
 
 
