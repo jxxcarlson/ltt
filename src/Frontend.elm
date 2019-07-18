@@ -514,7 +514,11 @@ header model =
         , Background.color Style.charcoal
         , spacing 12
         ]
-        [ userValidationModeButton model, loggingModeButton model, editingModeButton model, toggleLogsButton model ]
+        [ userValidationModeButton model
+        , showIf (model.currentUser /= Nothing) (loggingModeButton model)
+        , showIf (model.currentUser /= Nothing) (editingModeButton model)
+        , showIf (model.currentUser /= Nothing) (toggleLogsButton model)
+        ]
 
 
 toggleLogsButton : Model -> Element FrontendMsg
