@@ -6,7 +6,7 @@ import Log exposing (Log)
 import Msg exposing (..)
 import Set exposing (Set)
 import TestData exposing (log1, log2, user1)
-import User exposing (User, validateUser)
+import User exposing (User, addNewUser, validateUser)
 
 
 app =
@@ -58,10 +58,6 @@ updateFromFrontend clientId msg model =
             ( model, Cmd.none )
 
         SendSignInInfo username password ->
-            let
-                _ =
-                    Debug.log "VAL U" <| User.validateUser model.users username password
-            in
             case User.validateUser model.users username password of
                 True ->
                     ( model, sendToFrontend clientId <| SendValidatedUser (validUser username model.users) )
@@ -69,8 +65,25 @@ updateFromFrontend clientId msg model =
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
-        RequestLogs ->
-            ( model, sendToFrontend clientId (SendLogsToFrontend model.logs) )
+        SendSignUpInfo username password ->
+            case addNewUser username password model.users of
+                Just ( newUser, newUserList ) ->
+                    ( { model | users = newUserList }, sendToFrontend clientId <| SendValidatedUser (Just newUser) )
+
+                Nothing ->
+                    ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
+
+        RequestLogs maybeUser ->
+            case maybeUser of
+                Nothing ->
+                    ( model, sendToFrontend clientId (SendLogsToFrontend []) )
+
+                Just user ->
+                    let
+                        usersLogs =
+                            List.filter (\log -> log.username == user.username) model.logs
+                    in
+                    ( model, sendToFrontend clientId (SendLogsToFrontend usersLogs) )
 
         SendLogsToBackend logList ->
             ( { model | logs = logList }, Cmd.none )
@@ -87,20 +100,17 @@ sendToFrontend clientId msg =
     Lamdera.Backend.sendToFrontend 1000 clientId (\_ -> NoOpBackendMsg) msg
 
 
+
+--
+-- HELPERS
+--
+
+
 validUser : String -> List User -> Maybe User
 validUser username userList =
-    case List.filter (\user -> user.userName == username) userList of
+    case List.filter (\user -> user.username == username) userList of
         [ user ] ->
             Just { user | encryptedPassword = "" }
 
         _ ->
             Nothing
-
-
-
--- sendToFrontend :
---     Milliseconds
---     -> ClientId
---     -> (Result WsError () -> backendMsg)
---     -> toFrontend
---     -> Cmd backendMsg

@@ -16,7 +16,7 @@ import DateTime exposing (NaiveDateTime(..), rataDieFromNaiveDateTime)
 import List.Extra as LE
 import Time exposing (Posix)
 import TypedTime exposing (TypedTime(..), Unit(..))
-import User exposing (UserName)
+import User exposing (Username)
 
 
 type alias Log =
@@ -24,7 +24,7 @@ type alias Log =
     , counter : Int
     , name : String
     , note : String
-    , userName : UserName
+    , username : Username
     , data : List Event
     }
 

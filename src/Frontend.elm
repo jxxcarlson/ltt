@@ -25,7 +25,7 @@ import TestData exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (User, UserName)
+import User exposing (User, Username)
 
 
 app =
@@ -148,7 +148,8 @@ init =
       }
     , Cmd.batch
         [ sendToBackend timeoutInMs SentToBackendResult ClientJoin
-        , sendToBackend timeoutInMs SentToBackendResult RequestLogs
+
+        -- , sendToBackend timeoutInMs SentToBackendResult RequestLogs
         ]
     )
 
@@ -188,7 +189,7 @@ updateFromBackend msg model =
 
                 Just user ->
                     ( { model | currentUser = Just user, appMode = Logging }
-                    , sendToBackend timeoutInMs SentToBackendResult RequestLogs
+                    , sendToBackend timeoutInMs SentToBackendResult (RequestLogs (Just user))
                     )
 
 
@@ -233,6 +234,9 @@ update msg model =
 
         SignIn ->
             ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
+
+        SignUp ->
+            ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password) )
 
         SignOut ->
             ( { model | currentUser = Nothing }, Cmd.none )
@@ -415,7 +419,7 @@ noUserView model =
 signedInUserView : Model -> User -> Element FrontendMsg
 signedInUserView model user =
     column Style.mainColumnX
-        [ el [] (text <| "Signed in as " ++ user.userName)
+        [ el [] (text <| "Signed in as " ++ user.username)
         , signOutButton model
         ]
 
@@ -445,6 +449,14 @@ signInButton model =
     Input.button Style.headerButton
         { onPress = Just SignIn
         , label = Element.text "Sign in"
+        }
+
+
+signUpButton : Model -> Element FrontendMsg
+signUpButton model =
+    Input.button Style.headerButton
+        { onPress = Just SignUp
+        , label = Element.text "Sign Up"
         }
 
 

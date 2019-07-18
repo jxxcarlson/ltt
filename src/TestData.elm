@@ -47,7 +47,7 @@ log1 =
     , counter = 2
     , name = "Piano practice"
     , note = "Practice for recital"
-    , userName = "jxxcarlson"
+    , username = "jxxcarlson"
     , data = [ e1, e2 ]
     }
 
@@ -57,18 +57,18 @@ log2 =
     , counter = 2
     , name = "Elm projects"
     , note = "Get ready for conference"
-    , userName = "jxxcarlson"
+    , username = "jxxcarlson"
     , data = [ f1, f2 ]
     }
 
 
 user1 =
-    { userName = "jxxcarlson"
+    { username = "jxxcarlson"
     , encryptedPassword = "!@oboLocol@!"
     }
 
 
 user2 =
-    { userName = "socrates"
+    { username = "socrates"
     , encryptedPassword = "!@citpeks@!"
     }
