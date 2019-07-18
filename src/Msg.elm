@@ -13,7 +13,7 @@ import Log exposing (Event, EventGrouping(..), Log)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (UserName)
+import User exposing (User, UserName)
 
 
 type ToBackend
@@ -21,12 +21,19 @@ type ToBackend
     | ClientJoin
     | RequestLogs
     | SendLogsToBackend (List Log)
+    | SendSignInInfo String String
     | SendLogToBackend Log
 
 
 type ToFrontend
     = NoOpToFrontend
     | SendLogsToFrontend (List Log)
+    | SendValidatedUser (Maybe User)
+
+
+type BackendMsg
+    = NoOpBackendMsg
+    | SentToFrontendResult ClientId (Result WsError ())
 
 
 type FrontendMsg
@@ -60,11 +67,6 @@ type TimerCommand
     | TCContinue
     | TCLog
     | TCReset
-
-
-type BackendMsg
-    = NoOpBackendMsg
-    | SentToFrontendResult ClientId (Result WsError ())
 
 
 type AppMode

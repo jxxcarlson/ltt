@@ -173,14 +173,15 @@ subscriptions model =
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
-    ( case msg of
+    case msg of
         NoOpToFrontend ->
-            model
+            ( model, Cmd.none )
 
         SendLogsToFrontend newLogList ->
-            { model | logs = newLogList }
-    , Cmd.none
-    )
+            ( { model | logs = newLogList }, Cmd.none )
+
+        SendValidatedUser currentUser ->
+            ( { model | currentUser = currentUser }, Cmd.none )
 
 
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
@@ -223,7 +224,7 @@ update msg model =
             ( { model | password = str }, Cmd.none )
 
         SignIn ->
-            ( model, Cmd.none )
+            ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
 
         -- EVENTS
         GotValueString str ->
@@ -417,11 +418,12 @@ inputUserName model =
 
 
 inputPassword model =
-    Input.currentPassword (Style.inputStyle 200)
+    Input.text (Style.inputStyle 200)
         { onChange = GotPassword
-        , text = model.username
+        , text = model.password
         , placeholder = Nothing
-        , show = False
+
+        ---, show = False
         , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Password")
         }
 

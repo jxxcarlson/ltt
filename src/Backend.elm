@@ -57,6 +57,18 @@ updateFromFrontend clientId msg model =
         NoOpToBackend ->
             ( model, Cmd.none )
 
+        SendSignInInfo username password ->
+            let
+                _ =
+                    Debug.log "VAL U" <| User.validateUser model.users username password
+            in
+            case User.validateUser model.users username password of
+                True ->
+                    ( model, sendToFrontend clientId <| SendValidatedUser (validUser username model.users) )
+
+                False ->
+                    ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
+
         RequestLogs ->
             ( model, sendToFrontend clientId (SendLogsToFrontend model.logs) )
 
@@ -73,6 +85,16 @@ updateFromFrontend clientId msg model =
 sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
 sendToFrontend clientId msg =
     Lamdera.Backend.sendToFrontend 1000 clientId (\_ -> NoOpBackendMsg) msg
+
+
+validUser : String -> List User -> Maybe User
+validUser username userList =
+    case List.filter (\user -> user.userName == username) userList of
+        [ user ] ->
+            Just { user | encryptedPassword = "" }
+
+        _ ->
+            Nothing
 
 
 
