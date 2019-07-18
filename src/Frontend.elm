@@ -1,6 +1,7 @@
 module Frontend exposing (Model, app)
 
 --
+-- import Main exposing (Logging)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
@@ -132,7 +133,7 @@ init =
       , maybeCurrentLog = Nothing
       , maybeCurrentEvent = Nothing
       , logFilterString = ""
-      , appMode = Logging
+      , appMode = UserValidation
       , visibilityOfLogList = Visible
       , currentTime = Time.millisToPosix 0
       , beginTime = Nothing
@@ -181,7 +182,14 @@ updateFromBackend msg model =
             ( { model | logs = newLogList }, Cmd.none )
 
         SendValidatedUser currentUser ->
-            ( { model | currentUser = currentUser }, Cmd.none )
+            case currentUser of
+                Nothing ->
+                    ( { model | currentUser = Nothing }, Cmd.none )
+
+                Just user ->
+                    ( { model | currentUser = Just user, appMode = Logging }
+                    , sendToBackend timeoutInMs SentToBackendResult RequestLogs
+                    )
 
 
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
@@ -225,6 +233,9 @@ update msg model =
 
         SignIn ->
             ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
+
+        SignOut ->
+            ( { model | currentUser = Nothing }, Cmd.none )
 
         -- EVENTS
         GotValueString str ->
@@ -405,6 +416,7 @@ signedInUserView : Model -> User -> Element FrontendMsg
 signedInUserView model user =
     column Style.mainColumnX
         [ el [] (text <| "Signed in as " ++ user.userName)
+        , signOutButton model
         ]
 
 
@@ -433,6 +445,14 @@ signInButton model =
     Input.button Style.headerButton
         { onPress = Just SignIn
         , label = Element.text "Sign in"
+        }
+
+
+signOutButton : Model -> Element FrontendMsg
+signOutButton model =
+    Input.button Style.headerButton
+        { onPress = Just SignOut
+        , label = Element.text "Sign out"
         }
 
 

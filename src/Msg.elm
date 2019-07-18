@@ -45,6 +45,7 @@ type FrontendMsg
     | GotUserName String
     | GotPassword String
     | SignIn
+    | SignOut
       --
     | ChangeUrl Url
     | ClickLink UrlRequest
