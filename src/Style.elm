@@ -15,11 +15,13 @@ module Style exposing
     , grey
     , headerButton
     , inactiveButton
+    , inputStyle
     , lightGrey
     , listElementButtonStyleWithWidth2
     , mainColumn
     , mainColumn2
     , mainColumnPhone
+    , mainColumnX
     , makeGrey
     , myFocusStyle
     , navBar
@@ -41,6 +43,7 @@ module Style exposing
 
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes
 
@@ -135,6 +138,10 @@ smallButtonRed =
 
 mainColumn w h =
     [ paddingXY 8 8, spacing 12, width w, height h, clipY, clipX ]
+
+
+mainColumnX =
+    mainColumn fill fill ++ [ spacing 12, padding 40, Background.color (makeGrey 0.9) ]
 
 
 mainColumn2 w h =
@@ -321,3 +328,13 @@ darkOrange =
 
 lightOrange =
     Element.rgb255 255 239 204
+
+
+inputStyle w =
+    [ width (px w)
+    , height (px 30)
+    , Background.color (makeGrey 0.8)
+    , Font.color black
+    , Font.size 12
+    , Border.width 2
+    ]

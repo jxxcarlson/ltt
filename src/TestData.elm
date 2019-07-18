@@ -1,4 +1,4 @@
-module TestData exposing (e1, e2, f1, f2, log1, log2)
+module TestData exposing (e1, e2, f1, f2, log1, log2, user1, user2)
 
 import DateTime exposing (NaiveDateTime(..))
 import Log exposing (..)
@@ -59,4 +59,16 @@ log2 =
     , note = "Get ready for conference"
     , userName = "jxxcarlson"
     , data = [ f1, f2 ]
+    }
+
+
+user1 =
+    { userName = "jxxcarlson"
+    , encryptedPassword = "!@oboLocol@!"
+    }
+
+
+user2 =
+    { userName = "socrates"
+    , encryptedPassword = "!@citpeks@!"
     }

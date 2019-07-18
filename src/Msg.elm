@@ -13,7 +13,7 @@ import Log exposing (Event, EventGrouping(..), Log)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (UserId)
+import User exposing (UserName)
 
 
 type ToBackend
@@ -32,8 +32,12 @@ type ToFrontend
 type FrontendMsg
     = NoOpFrontendMsg
     | SetAppMode AppMode
-    | SendUserLogs UserId
+    | SendUserLogs UserName
     | SentToBackendResult (Result WsError ())
+      --
+    | GotUserName String
+    | GotPassword String
+    | SignIn
       --
     | ChangeUrl Url
     | ClickLink UrlRequest

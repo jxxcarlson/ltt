@@ -24,7 +24,7 @@ import TestData exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (UserId)
+import User exposing (User, UserName)
 
 
 app =
@@ -83,6 +83,11 @@ type alias Model =
     , visibilityOfLogList : Visibility
 
     --
+    , currentUser : Maybe User
+    , username : String
+    , password : String
+
+    --
     , eventDurationString : String
     , logs : List Log
     , maybeCurrentLog : Maybe Log
@@ -115,6 +120,13 @@ init : ( Model, Cmd FrontendMsg )
 init =
     ( { input = "App started"
       , message = "App started"
+
+      --
+      , currentUser = Nothing
+      , username = ""
+      , password = ""
+
+      --
       , eventDurationString = ""
       , logs = []
       , maybeCurrentLog = Nothing
@@ -177,15 +189,14 @@ update msg model =
         NoOpFrontendMsg ->
             ( model, Cmd.none )
 
-        SetAppMode mode ->
-            ( { model | appMode = mode }, Cmd.none )
-
+        -- BACKEND
         SendUserLogs userId ->
             ( model, Cmd.none )
 
         SentToBackendResult result ->
             ( model, Cmd.none )
 
+        -- URL (NOT USED)
         ChangeUrl url ->
             ( model, Cmd.none )
 
@@ -198,8 +209,21 @@ update msg model =
                     ( model, Cmd.none )
 
         -- UI
+        SetAppMode mode ->
+            ( { model | appMode = mode }, Cmd.none )
+
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
+
+        -- USER
+        GotUserName str ->
+            ( { model | username = str }, Cmd.none )
+
+        GotPassword str ->
+            ( { model | password = str }, Cmd.none )
+
+        SignIn ->
+            ( model, Cmd.none )
 
         -- EVENTS
         GotValueString str ->
@@ -350,14 +374,77 @@ mainView model =
         ]
 
 
+
+--
+-- USER VIEW
+--
+
+
 userValidationView : Model -> Element FrontendMsg
 userValidationView model =
-    row [] [ el [] (text "User view") ]
+    case model.currentUser of
+        Nothing ->
+            noUserView model
+
+        Just user ->
+            signedInUserView model user
+
+
+noUserView : Model -> Element FrontendMsg
+noUserView model =
+    column Style.mainColumnX
+        [ el [ Font.size 18, Font.bold ] (text "Sign in")
+        , inputUserName model
+        , inputPassword model
+        , signInButton model
+        ]
+
+
+signedInUserView : Model -> User -> Element FrontendMsg
+signedInUserView model user =
+    column Style.mainColumnX
+        [ el [] (text <| "Signed in as " ++ user.userName)
+        ]
+
+
+inputUserName model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotUserName
+        , text = model.username
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Username")
+        }
+
+
+inputPassword model =
+    Input.currentPassword (Style.inputStyle 200)
+        { onChange = GotPassword
+        , text = model.username
+        , placeholder = Nothing
+        , show = False
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Password")
+        }
+
+
+signInButton : Model -> Element FrontendMsg
+signInButton model =
+    Input.button Style.headerButton
+        { onPress = Just SignIn
+        , label = Element.text "Sign in"
+        }
+
+
+
+--
+-- EDITOR VIEW
+--
 
 
 editingView : Model -> Element FrontendMsg
 editingView model =
-    row [] [ el [] (text "User view") ]
+    row Style.mainColumnX
+        [ el [] (text "Edit view")
+        ]
 
 
 
@@ -415,13 +502,13 @@ editingModeButton model =
 
 
 --
--- MAIN ROW
+-- LOG ROW
 --
 
 
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
-    row (Style.mainColumn fill fill ++ [ spacing 12, padding 40, Background.color (Style.makeGrey 0.9) ])
+    row Style.mainColumnX
         [ -- filterPanel model
           showIf (model.visibilityOfLogList == Visible) (logListPanel model)
         , eventListDisplay model
@@ -429,26 +516,8 @@ masterLogView model =
         ]
 
 
-showIf : Bool -> Element FrontendMsg -> Element FrontendMsg
-showIf bit element =
-    if bit then
-        element
 
-    else
-        Element.none
-
-
-showOne : Bool -> String -> String -> String
-showOne bit str1 str2 =
-    case bit of
-        True ->
-            str1
-
-        False ->
-            str2
-
-
-
+--
 --
 -- VIEWLOGS
 --
@@ -586,7 +655,7 @@ floatValueOfEvent scaleFactor_ event =
 
 
 inputEventDuration model =
-    Input.text inputStyle
+    Input.text (Style.inputStyle 60)
         { onChange = GotValueString
         , text = model.eventDurationString
         , placeholder = Nothing
@@ -658,8 +727,6 @@ timerControls model =
         ]
 
 
-{-| xxx
--}
 startTimerButton : Element FrontendMsg
 startTimerButton =
     Input.button Style.button
@@ -746,6 +813,30 @@ scaleFactor =
 
 
 
+-- VIEW HELPERS
+--
+
+
+showIf : Bool -> Element FrontendMsg -> Element FrontendMsg
+showIf bit element =
+    if bit then
+        element
+
+    else
+        Element.none
+
+
+showOne : Bool -> String -> String -> String
+showOne bit str1 str2 =
+    case bit of
+        True ->
+            str1
+
+        False ->
+            str2
+
+
+
 --
 -- GRAPH HELPERS
 --
@@ -773,16 +864,6 @@ getScaleFactor model =
 
         Hours ->
             3600.0
-
-
-inputStyle =
-    [ width (px 60)
-    , height (px 30)
-    , Background.color (Style.makeGrey 0.8)
-    , Font.color Style.black
-    , Font.size 12
-    , Border.width 2
-    ]
 
 
 elapsedTypedTime : Model -> TypedTime

@@ -5,7 +5,8 @@ import Lamdera.Types exposing (..)
 import Log exposing (Log)
 import Msg exposing (..)
 import Set exposing (Set)
-import TestData exposing (log1, log2)
+import TestData exposing (log1, log2, user1)
+import User exposing (User, validateUser)
 
 
 app =
@@ -24,12 +25,12 @@ app =
 
 
 type alias Model =
-    { logs : List Log, clients : Set ClientId }
+    { logs : List Log, users : List User, clients : Set ClientId }
 
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { logs = [ log1, log2 ], clients = Set.empty }, Cmd.none )
+    ( { logs = [ log1, log2 ], users = [ user1 ], clients = Set.empty }, Cmd.none )
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
