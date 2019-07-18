@@ -24,6 +24,7 @@ type ToBackend
     | SendSignInInfo String String
     | SendSignUpInfo String String
     | SendLogToBackend Log
+    | CreateLog Log
 
 
 type ToFrontend
@@ -62,6 +63,8 @@ type FrontendMsg
     | UpdateElapsedTime Float
     | GotValueString String
     | MakeEvent
+    | MakeNewLog
+    | GotNewLogName String
 
 
 type TimerCommand

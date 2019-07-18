@@ -91,6 +91,13 @@ updateFromFrontend clientId msg model =
         SendLogToBackend log ->
             ( { model | logs = Log.replaceLog log model.logs }, Cmd.none )
 
+        CreateLog log ->
+            let
+                newLog =
+                    { log | id = List.length model.logs + 1 }
+            in
+            ( { model | logs = newLog :: model.logs }, Cmd.none )
+
         ClientJoin ->
             ( model, Cmd.none )
 

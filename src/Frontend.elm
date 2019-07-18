@@ -2,6 +2,7 @@ module Frontend exposing (Model, app)
 
 --
 -- import Main exposing (Logging)
+-- import Svg.Attributes exposing (k1)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
@@ -91,6 +92,7 @@ type alias Model =
     --
     , eventDurationString : String
     , logs : List Log
+    , newLogName : String
     , maybeCurrentLog : Maybe Log
     , maybeCurrentEvent : Maybe Event
     , logFilterString : String
@@ -130,6 +132,7 @@ init =
       --
       , eventDurationString = ""
       , logs = []
+      , newLogName = ""
       , maybeCurrentLog = Nothing
       , maybeCurrentEvent = Nothing
       , logFilterString = ""
@@ -277,6 +280,19 @@ update msg model =
                             addEventUsingString (Debug.log "EVT STRING" model.eventDurationString) model.currentTime log model.logs
                     in
                     ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
+
+        MakeNewLog ->
+            case newLog model of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newLog_ ->
+                    ( { model | maybeCurrentLog = Just newLog_, logs = newLog_ :: model.logs }
+                    , sendToBackend timeoutInMs SentToBackendResult (CreateLog newLog_)
+                    )
+
+        GotNewLogName str ->
+            ( { model | newLogName = str }, Cmd.none )
 
         -- TIMER
         TimeChange time ->
@@ -545,12 +561,32 @@ editingModeButton model =
 
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
-    row Style.mainColumnX
-        [ -- filterPanel model
-          showIf (model.visibilityOfLogList == Visible) (logListPanel model)
-        , eventListDisplay model
-        , eventPanel model
+    column Style.mainColumnX
+        [ row []
+            [ -- filterPanel model
+              showIf (model.visibilityOfLogList == Visible) (logListPanel model)
+            , eventListDisplay model
+            , eventPanel model
+            ]
+        , row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
         ]
+
+
+newLogButton : Element FrontendMsg
+newLogButton =
+    Input.button Style.button
+        { onPress = Just MakeNewLog
+        , label = Element.text "New log"
+        }
+
+
+inputNewLogName model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotNewLogName
+        , text = model.newLogName
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
+        }
 
 
 
@@ -873,6 +909,23 @@ showOne bit str1 str2 =
             str2
 
 
+newLog : Model -> Maybe Log
+newLog model =
+    case model.currentUser of
+        Nothing ->
+            Nothing
+
+        Just user ->
+            Just <|
+                { id = -1
+                , counter = 0
+                , name = model.newLogName
+                , note = ""
+                , username = user.username
+                , data = []
+                }
+
+
 
 --
 -- GRAPH HELPERS
@@ -1067,16 +1120,16 @@ addEventUsingString eventDurationString currentTime log logList =
 addEvent : TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
 addEvent duration currentTime log logList =
     let
-        newLog =
+        newLog_ =
             Log.insertEvent "" duration currentTime log
 
         newLogs =
-            Log.replaceLog newLog logList
+            Log.replaceLog newLog_ logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend newLog)
+            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend newLog_)
     in
-    { currentLog = newLog, logList = newLogs, cmd = cmd }
+    { currentLog = newLog_, logList = newLogs, cmd = cmd }
 
 
 
