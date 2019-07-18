@@ -409,10 +409,13 @@ userValidationView model =
 noUserView : Model -> Element FrontendMsg
 noUserView model =
     column Style.mainColumnX
-        [ el [ Font.size 18, Font.bold ] (text "Sign in")
+        [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome!")
         , inputUserName model
         , inputPassword model
-        , signInButton model
+        , row [ spacing 12, paddingXY 0 12 ]
+            [ signInButton model
+            , signUpButton model
+            ]
         ]
 
 
