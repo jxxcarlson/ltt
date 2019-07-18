@@ -1,6 +1,5 @@
 module TestData exposing (e1, e2, f1, f2, log1, log2, user1, user2)
 
-import DateTime exposing (NaiveDateTime(..))
 import Log exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)

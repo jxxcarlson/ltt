@@ -12,10 +12,10 @@
             "elm/bytes": "1.0.8",
             "elm/core": "1.0.2",
             "elm/html": "1.0.0",
-            "elm/parser": "1.1.0",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
             "elm-community/list-extra": "8.2.0",
+            "elm-community/maybe-extra": "5.0.0",
             "justinmimbs/date": "3.1.2",
             "jxxcarlson/elm-graph": "2.0.1",
             "mdgriffith/elm-ui": "1.1.0"

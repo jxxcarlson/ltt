@@ -7,7 +7,7 @@ module Frontend exposing (Model, app)
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
 import Date exposing (Date)
-import DateTime exposing (NaiveDateTime(..))
+import DateTime
 import Dict
 import Element exposing (..)
 import Element.Background as Background
@@ -1118,7 +1118,7 @@ addEventUsingString eventDurationString currentTime log logList =
             { currentLog = log, logList = logList, cmd = Cmd.none }
 
         Just duration ->
-            addEvent duration currentTime log logList
+            addEvent (TypedTime.convertFromSecondsWithUnit Seconds (60 * duration)) currentTime log logList
 
 
 addEvent : TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord

@@ -8,21 +8,15 @@ module TypedTime exposing
     , convertTo
     , convertToSeconds
     , decodeHM
+    , decodeMinutes
     , hmRecordFromSeconds
     , hmStringFromSeconds
     , hmsRecordFromSeconds
     , hmsStringFromSeconds
     , multiply
-    , parseHM
-    , parseInt
-    , parseInt_
-    , parseTime
     , sum
     , timeAsStringWithUnit
     )
-
-import Parser exposing (..)
-
 
 {-|
 
@@ -31,6 +25,10 @@ import Parser exposing (..)
 > "00:10" : String
 
 -}
+
+import Maybe.Extra
+
+
 type TypedTime
     = TypedTime Unit Float
 
@@ -207,43 +205,27 @@ hmStringFromSeconds s =
 --
 
 
-decodeHM : String -> Maybe TypedTime
+decodeHM : String -> Maybe Float
 decodeHM str =
-    Parser.run parseTime str
-        |> Result.toMaybe
-        |> Maybe.map (TypedTime Seconds)
+    let
+        parts =
+            String.split ":" (String.trim str)
+                |> List.map String.toFloat
+                |> Maybe.Extra.values
+    in
+    case List.length parts of
+        1 ->
+            List.head parts
+
+        _ ->
+            Nothing
 
 
-{-| run parseHM takes a string in the format hh:mm as
-input and returns the resulting time in seconds.
+decodeMinutes : String -> TypedTime
+decodeMinutes str =
+    case decodeHM str of
+        Nothing ->
+            TypedTime Seconds 0
 
-> run parseHM "02:10"
-
-    Ok 7800 : Result (List DeadEnd) Float
-
--}
-parseHM : Parser Float
-parseHM =
-    (succeed HMRecord
-        |= parseInt
-        |. symbol ":"
-        |= parseInt
-    )
-        |> Parser.map (\hm -> hm.hours * 3600 + hm.minutes * 60 |> toFloat)
-
-
-parseTime : Parser Float
-parseTime =
-    oneOf [ backtrackable parseHM, float |> Parser.map (\x -> 60 * x) ]
-
-
-parseInt_ : Parser Int
-parseInt_ =
-    succeed identity
-        |. symbol "0"
-        |= int
-
-
-parseInt : Parser Int
-parseInt =
-    oneOf [ parseInt_, int ]
+        Just t ->
+            TypedTime Seconds (60.0 * t)

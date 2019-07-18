@@ -11,7 +11,6 @@ module DateTime exposing
     , naiveDateTimeFromPosix
     , naiveDateTimeValue
     , naiveTimeStringFromPosix
-    , offsetDateTimeStringByHours
     , posixFromNaiveDateString
     , posixFromNaiveDateTime
     , rataDieFromNaiveDateTime
@@ -20,7 +19,6 @@ module DateTime exposing
     )
 
 import Date exposing (Date, Unit(..), diff)
-import Parser exposing (..)
 import Time exposing (Posix)
 
 
@@ -40,18 +38,6 @@ naiveDateTimeValue (NaiveDateTime str) =
     str
 
 
-parseTR : Parser TR
-parseTR =
-    succeed TR
-        |= (parseUntil ':' |> Parser.map strToInt)
-        |. symbol ":"
-        |. chompWhile (\c -> c == '0')
-        |= (parseUntil ':' |> Parser.map strToInt)
-        |. symbol ":"
-        |. chompWhile (\c -> c == '0')
-        |= (parseUntil '.' |> Parser.map strToInt)
-
-
 offsetTRByHours : Int -> TR -> TR
 offsetTRByHours h tt =
     let
@@ -66,34 +52,6 @@ offsetTRByHours h tt =
 
     else
         { tt | hour = newHours + 24 }
-
-
-offsetDateTimeStringByHours : Int -> String -> String
-offsetDateTimeStringByHours k str =
-    let
-        tts =
-            case String.split "T" str of
-                [ _, tts_ ] ->
-                    tts_
-
-                _ ->
-                    ""
-
-        posix_ =
-            posixIntfromNaiveDateTimeString str
-
-        shiftedDateString =
-            Date.fromPosix Time.utc (Time.millisToPosix ((posix_ + k * 3600) * 1000)) |> Date.toIsoString
-
-        shiftedTimeString =
-            case run parseTR tts of
-                Ok tr ->
-                    offsetTRByHours k tr |> stringValueOfTR
-
-                Err _ ->
-                    "00:00:00"
-    in
-    shiftedDateString ++ "T" ++ shiftedTimeString
 
 
 stringValueOfTR : TR -> String
@@ -116,13 +74,6 @@ strToInt str =
     str
         |> String.toInt
         |> Maybe.withDefault 0
-
-
-parseUntil : Char -> Parser String
-parseUntil c =
-    getChompedString <|
-        succeed ()
-            |. chompWhile (\c_ -> c_ /= c)
 
 
 isoStringFromNaiveDateTime : String -> Maybe String
@@ -287,34 +238,6 @@ posixFromNaiveDateString str =
 posixFromNaiveDateTime : NaiveDateTime -> Posix
 posixFromNaiveDateTime (NaiveDateTime str) =
     posixFromNaiveDateString str
-
-
-posixFromTimeString str =
-    case run parseTR str of
-        Err _ ->
-            0
-
-        Ok result ->
-            let
-                h =
-                    result.hour * 3600
-
-                m =
-                    result.minute * 60
-
-                s =
-                    result.second
-            in
-            h + m + s
-
-
-posixIntfromNaiveDateTimeString str =
-    case String.split "T" str of
-        [ dd, tt ] ->
-            posixIntFromNaiveDateString dd + posixFromTimeString tt
-
-        _ ->
-            0
 
 
 timeStringOfDateTimeString : String -> String
