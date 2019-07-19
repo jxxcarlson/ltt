@@ -123,44 +123,42 @@ type alias Model =
 --
 
 
+initialModel =
+    { input = "App started"
+    , message = "App started"
+
+    --
+    , currentUser = Nothing
+    , username = ""
+    , password = ""
+
+    --
+    , eventDurationString = ""
+    , eventDateFilterString = ""
+    , logs = []
+    , newLogName = ""
+    , changedLogName = ""
+    , maybeCurrentLog = Nothing
+    , maybeCurrentEvent = Nothing
+    , logFilterString = ""
+    , appMode = UserValidation
+    , visibilityOfLogList = Visible
+    , currentTime = Time.millisToPosix 0
+    , beginTime = Nothing
+    , doUpdateElapsedTime = False
+    , elapsedTime = TypedTime Seconds 0
+    , accumulatedTime = TypedTime Seconds 0
+    , dateFilter = NoDateFilter
+    , timeZoneOffset = 5
+    , timerState = TSInitial
+    , filterState = NoGrouping
+    , outputUnit = Hours
+    }
+
+
 init : ( Model, Cmd FrontendMsg )
 init =
-    ( { input = "App started"
-      , message = "App started"
-
-      --
-      , currentUser = Nothing
-      , username = ""
-      , password = ""
-
-      --
-      , eventDurationString = ""
-      , eventDateFilterString = ""
-      , logs = []
-      , newLogName = ""
-      , changedLogName = ""
-      , maybeCurrentLog = Nothing
-      , maybeCurrentEvent = Nothing
-      , logFilterString = ""
-      , appMode = UserValidation
-      , visibilityOfLogList = Visible
-      , currentTime = Time.millisToPosix 0
-      , beginTime = Nothing
-      , doUpdateElapsedTime = False
-      , elapsedTime = TypedTime Seconds 0
-      , accumulatedTime = TypedTime Seconds 0
-      , dateFilter = NoDateFilter
-      , timeZoneOffset = 5
-      , timerState = TSInitial
-      , filterState = NoGrouping
-      , outputUnit = Hours
-      }
-    , Cmd.batch
-        [ sendToBackend timeoutInMs SentToBackendResult ClientJoin
-
-        -- , sendToBackend timeoutInMs SentToBackendResult RequestLogs
-        ]
-    )
+    ( initialModel, sendToBackend timeoutInMs SentToBackendResult ClientJoin )
 
 
 timeoutInMs =
@@ -242,13 +240,13 @@ update msg model =
             ( { model | password = str }, Cmd.none )
 
         SignIn ->
-            ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
+            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
 
         SignUp ->
-            ( model, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password) )
+            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password) )
 
         SignOut ->
-            ( { model | currentUser = Nothing }, Cmd.none )
+            ( initialModel, Cmd.none )
 
         -- EVENTS
         GotLogFilter str ->
