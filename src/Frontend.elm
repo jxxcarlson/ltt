@@ -318,10 +318,10 @@ update msg model =
 
         DeleteEvent logId eventId ->
             let
-                newLogs =
+                ( newMaybeCurrentLog, newLogs ) =
                     case model.maybeCurrentLog of
                         Nothing ->
-                            model.logs
+                            ( Nothing, model.logs )
 
                         Just log ->
                             let
@@ -331,9 +331,9 @@ update msg model =
                                 changedLog =
                                     { log | data = Debug.log "FE: CHANGED" changedData }
                             in
-                            Log.replaceLog changedLog model.logs
+                            ( Just changedLog, Log.replaceLog changedLog model.logs )
             in
-            ( { model | logs = newLogs }, sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId) )
+            ( { model | logs = newLogs, maybeCurrentLog = newMaybeCurrentLog }, sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId) )
 
         MakeNewLog ->
             case newLog model of
