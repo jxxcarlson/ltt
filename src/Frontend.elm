@@ -304,16 +304,12 @@ update msg model =
         MakeEvent ->
             case model.maybeCurrentLog of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "BAD BRANCH (1)"
-                    in
                     ( { model | message = "No log available to make event" }, Cmd.none )
 
                 Just log ->
                     let
                         r =
-                            addEventUsingString (Debug.log "EVT STRING" model.eventDurationString) model.currentTime log model.logs
+                            addEventUsingString model.eventDurationString model.currentTime log model.logs
                     in
                     ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
@@ -330,7 +326,7 @@ update msg model =
                                     List.filter (\event -> event.id /= eventId) log.data
 
                                 changedLog =
-                                    { log | data = Debug.log "FE: CHANGED" changedData }
+                                    { log | data = changedData }
                             in
                             ( Just changedLog, Log.replaceLog changedLog model.logs )
             in
@@ -424,20 +420,12 @@ update msg model =
                 TCLog ->
                     case model.maybeCurrentLog of
                         Nothing ->
-                            let
-                                _ =
-                                    Debug.log "BAD BRANCH"
-                            in
                             ( model, Cmd.none )
 
                         Just log ->
                             let
-                                _ =
-                                    Debug.log "BAD BRANCH"
-
                                 duration =
-                                    Debug.log "TIME TO LOG" <|
-                                        TypedTime.sum [ Debug.log "ACC" model.accumulatedTime, Debug.log "ELAPSED" model.elapsedTime ]
+                                    TypedTime.sum [ model.accumulatedTime, model.elapsedTime ]
 
                                 r =
                                     addEvent duration model.currentTime log model.logs
