@@ -107,6 +107,21 @@ updateFromFrontend clientId msg model =
             in
             ( { model | logs = Log.replaceLog changedLog model.logs }, Cmd.none )
 
+        BEDeleteEvent logId eventId ->
+            case List.filter (\log -> log.id == logId) model.logs |> List.head of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just log ->
+                    let
+                        changedData =
+                            List.filter (\event -> event.id /= eventId) log.data
+
+                        changedLog =
+                            { log | data = changedData }
+                    in
+                    ( { model | logs = Log.replaceLog changedLog model.logs }, Cmd.none )
+
         ClientJoin ->
             ( model, Cmd.none )
 

@@ -316,6 +316,25 @@ update msg model =
                     in
                     ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
+        DeleteEvent logId eventId ->
+            let
+                newLogs =
+                    case model.maybeCurrentLog of
+                        Nothing ->
+                            model.logs
+
+                        Just log ->
+                            let
+                                changedData =
+                                    List.filter (\event -> event.id /= eventId) log.data
+
+                                changedLog =
+                                    { log | data = Debug.log "FE: CHANGED" changedData }
+                            in
+                            Log.replaceLog changedLog model.logs
+            in
+            ( { model | logs = newLogs }, sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId) )
+
         MakeNewLog ->
             case newLog model of
                 Nothing ->
@@ -557,15 +576,39 @@ editingView : Model -> Element FrontendMsg
 editingView model =
     column Style.mainColumnX
         [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
-        , row []
+        , row [ spacing 12 ]
             [ logListPanel model
             , eventListDisplay model
+            , logEventPanel model
             ]
         , row [ spacing 12 ]
             [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
             , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
             ]
         ]
+
+
+logEventPanel model =
+    case model.maybeCurrentEvent of
+        Nothing ->
+            Element.none
+
+        Just evt ->
+            column [ width (px 300), height (px 450), padding 12, Border.width 1 ]
+                [ deleteEventButton model evt
+                ]
+
+
+deleteEventButton model event =
+    case model.maybeCurrentLog of
+        Nothing ->
+            Element.none
+
+        Just log ->
+            Input.button Style.button
+                { onPress = Just (DeleteEvent log.id event.id)
+                , label = Element.text <| "Remove event " ++ String.fromInt event.id
+                }
 
 
 changeLogNameButton : Element FrontendMsg
@@ -1200,7 +1243,7 @@ setCurrentEventButton : Model -> Event -> Int -> Element FrontendMsg
 setCurrentEventButton model event index =
     Input.button (Style.titleButton (Just event == model.maybeCurrentEvent))
         { onPress = Just (SetCurrentEvent event)
-        , label = el [ Font.bold ] (Element.text <| String.fromInt index ++ ": " ++ String.fromInt event.id)
+        , label = el [ Font.bold ] (Element.text <| String.fromInt event.id)
         }
 
 

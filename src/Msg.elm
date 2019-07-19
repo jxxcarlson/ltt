@@ -26,6 +26,7 @@ type ToBackend
     | SendLogToBackend Log
     | CreateLog Log
     | SendChangeLogName String Log
+    | BEDeleteEvent Int Int
 
 
 type ToFrontend
@@ -64,6 +65,7 @@ type FrontendMsg
     | UpdateElapsedTime Float
     | GotValueString String
     | MakeEvent
+    | DeleteEvent Int Int
     | MakeNewLog
     | GotNewLogName String
     | GotLogFilter String
