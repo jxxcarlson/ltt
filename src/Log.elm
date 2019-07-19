@@ -126,6 +126,7 @@ eventsByDay list =
         |> fillGaps ( referenceDT, 0 )
         |> group
         |> List.map sumList2
+        |> List.reverse
 
 
 

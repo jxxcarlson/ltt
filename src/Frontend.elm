@@ -3,6 +3,7 @@ module Frontend exposing (Model, app)
 --
 -- import Main exposing (Logging)
 -- import Svg.Attributes exposing (k1)
+-- exposing (..)
 
 import Array exposing (map)
 import Browser exposing (UrlRequest(..))
@@ -19,7 +20,7 @@ import Graph exposing (Option(..))
 import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
-import Log exposing (..)
+import Log exposing (DateFilter(..), Event, EventGrouping(..), Log)
 import Msg exposing (AppMode(..), BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..))
 import Style
 import Task
@@ -755,7 +756,7 @@ viewLog model =
 
                 events : List Event
                 events =
-                    groupingFilter model.filterState events2
+                    Log.groupingFilter model.filterState events2
 
                 nEvents =
                     List.length events |> toFloat
@@ -813,7 +814,7 @@ eventPanel model =
                     DateTime.naiveDateStringFromPosix model.currentTime
 
                 events2 =
-                    dateFilter model.currentTime model.dateFilter currentLog.data
+                    Log.dateFilter model.currentTime model.dateFilter currentLog.data
 
                 events =
                     case model.filterState of
