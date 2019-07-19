@@ -327,7 +327,17 @@ update msg model =
                     )
 
         ChangeLogName ->
-            ( model, Cmd.none )
+            -- ##
+            case model.maybeCurrentLog of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just log ->
+                    let
+                        changedLog =
+                            { log | name = model.changedLogName }
+                    in
+                    ( { model | logs = Log.replaceLog changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.changedLogName log) )
 
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )

@@ -1,5 +1,6 @@
 module Backend exposing (Model, app)
 
+import Frontend
 import Lamdera.Backend
 import Lamdera.Types exposing (..)
 import Log exposing (Log)
@@ -97,6 +98,14 @@ updateFromFrontend clientId msg model =
                     { log | id = List.length model.logs + 1 }
             in
             ( { model | logs = newLog :: model.logs }, Cmd.none )
+
+        SendChangeLogName newLogName log ->
+            -- ##
+            let
+                changedLog =
+                    { log | name = newLogName }
+            in
+            ( { model | logs = Log.replaceLog changedLog model.logs }, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )

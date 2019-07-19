@@ -25,6 +25,7 @@ type ToBackend
     | SendSignUpInfo String String
     | SendLogToBackend Log
     | CreateLog Log
+    | SendChangeLogName String Log
 
 
 type ToFrontend
