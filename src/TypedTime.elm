@@ -26,6 +26,7 @@ module TypedTime exposing
 
 -}
 
+import List.Extra
 import Maybe.Extra
 
 
@@ -205,6 +206,7 @@ hmStringFromSeconds s =
 --
 
 
+{-| -}
 decodeHM : String -> Maybe Float
 decodeHM str =
     let
@@ -215,7 +217,17 @@ decodeHM str =
     in
     case List.length parts of
         1 ->
-            List.head parts
+            Maybe.map (\x -> 60 * x) (List.Extra.getAt 0 parts)
+
+        2 ->
+            let
+                hoursPart =
+                    Maybe.map (\x -> 3600 * x) (List.Extra.getAt 0 parts)
+
+                minutesPart =
+                    Maybe.map (\x -> 60 * x) (List.Extra.getAt 1 parts)
+            in
+            Maybe.map2 (+) hoursPart minutesPart
 
         _ ->
             Nothing

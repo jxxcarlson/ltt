@@ -365,7 +365,16 @@ update msg model =
                                 r =
                                     addEvent duration model.currentTime log model.logs
                             in
-                            ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
+                            ( { model
+                                | logs = r.logList
+                                , timerState = TSInitial
+                                , elapsedTime = TypedTime Seconds 0
+                                , accumulatedTime = TypedTime Seconds 0
+                                , doUpdateElapsedTime = False
+                                , maybeCurrentLog = Just r.currentLog
+                              }
+                            , r.cmd
+                            )
 
                 TCReset ->
                     ( { model
@@ -1118,7 +1127,7 @@ addEventUsingString eventDurationString currentTime log logList =
             { currentLog = log, logList = logList, cmd = Cmd.none }
 
         Just duration ->
-            addEvent (TypedTime.convertFromSecondsWithUnit Seconds (60 * duration)) currentTime log logList
+            addEvent (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
 
 
 addEvent : TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
