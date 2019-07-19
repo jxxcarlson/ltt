@@ -91,6 +91,7 @@ type alias Model =
 
     --
     , eventDurationString : String
+    , eventDateFilterString : String
     , logs : List Log
     , newLogName : String
     , maybeCurrentLog : Maybe Log
@@ -131,6 +132,7 @@ init =
 
       --
       , eventDurationString = ""
+      , eventDateFilterString = ""
       , logs = []
       , newLogName = ""
       , maybeCurrentLog = Nothing
@@ -245,6 +247,22 @@ update msg model =
             ( { model | currentUser = Nothing }, Cmd.none )
 
         -- EVENTS
+        GotLogFilter str ->
+            ( { model | logFilterString = str }, Cmd.none )
+
+        GotEventDateFilter str ->
+            case String.toInt str of
+                Nothing ->
+                    ( { model | dateFilter = NoDateFilter, eventDateFilterString = str }, Cmd.none )
+
+                Just k ->
+                    case k <= 0 of
+                        True ->
+                            ( { model | dateFilter = NoDateFilter, eventDateFilterString = str }, Cmd.none )
+
+                        False ->
+                            ( { model | dateFilter = FilterByLast k, eventDateFilterString = str }, Cmd.none )
+
         GotValueString str ->
             ( { model | eventDurationString = str }, Cmd.none )
 
@@ -504,8 +522,15 @@ signOutButton model =
 
 editingView : Model -> Element FrontendMsg
 editingView model =
-    row Style.mainColumnX
-        [ el [] (text "Edit view")
+    column Style.mainColumnX
+        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        , row []
+            [ logListPanel model
+            , eventListDisplay model
+
+            -- , eventPanel model
+            ]
+        , row [ spacing 12 ] []
         ]
 
 
@@ -575,9 +600,9 @@ editingModeButton model =
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
     column Style.mainColumnX
-        [ row []
-            [ -- filterPanel model
-              showIf (model.visibilityOfLogList == Visible) (logListPanel model)
+        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        , row []
+            [ showIf (model.visibilityOfLogList == Visible) (logListPanel model)
             , eventListDisplay model
             , eventPanel model
             ]
@@ -1005,14 +1030,35 @@ eventListDisplay model =
 --         ]
 --
 --
--- filterPanel model =
---     row [ spacing 8 ]
---         [ el [ Font.bold ] (text "Filter:")
---         , inputLogNameFilter model
---         , el [ Font.bold ] (text "Since:")
---         , inputEventDateFilter model
---         , row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
---         ]
+
+
+filterPanel model =
+    row [ spacing 8 ]
+        [ el [ Font.bold ] (text "Filter:")
+        , inputLogNameFilter model
+        , el [ Font.bold ] (text "Since:")
+        , inputEventDateFilter model
+
+        --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
+        ]
+
+
+inputLogNameFilter model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotLogFilter
+        , text = model.logFilterString
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
+        }
+
+
+inputEventDateFilter model =
+    Input.text (Style.inputStyle 50)
+        { onChange = GotEventDateFilter
+        , text = model.eventDateFilterString
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
+        }
 
 
 logListPanel : Model -> Element FrontendMsg

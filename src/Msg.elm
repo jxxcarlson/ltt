@@ -65,6 +65,8 @@ type FrontendMsg
     | MakeEvent
     | MakeNewLog
     | GotNewLogName String
+    | GotLogFilter String
+    | GotEventDateFilter String
 
 
 type TimerCommand
