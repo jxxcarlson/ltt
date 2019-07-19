@@ -333,7 +333,13 @@ update msg model =
                             in
                             ( Just changedLog, Log.replaceLog changedLog model.logs )
             in
-            ( { model | logs = newLogs, maybeCurrentLog = newMaybeCurrentLog }, sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId) )
+            ( { model
+                | logs = newLogs
+                , maybeCurrentLog = newMaybeCurrentLog
+                , maybeCurrentEvent = Nothing
+              }
+            , sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId)
+            )
 
         MakeNewLog ->
             case newLog model of
