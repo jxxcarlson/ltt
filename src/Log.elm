@@ -12,7 +12,7 @@ module Log exposing
     , replaceLog
     )
 
-import DateTime exposing (NaiveDateTime(..), rataDieFromNaiveDateTime)
+import DateTime exposing (NaiveDateTime(..))
 import List.Extra as LE
 import Time exposing (Posix)
 import TypedTime exposing (TypedTime(..), Unit(..))
@@ -109,27 +109,33 @@ groupingFilter eventGrouping eventList =
             eventList
 
         GroupByDay ->
-            eventsByDay eventList
+            -- eventsByDay eventList
+            eventList
 
 
+{-| Temporary (bad) fix
+-}
 eventsByDay : List Event -> List Event
 eventsByDay list =
-    let
-        referenceDT =
-            Time.millisToPosix 0
-    in
     list
-        --|> List.map (\r -> offsetTimeZone timeZoneOffset r)
-        |> timeSeries
-        |> timeSeriesRD
-        |> List.sortBy Tuple.first
-        |> fillGaps ( referenceDT, 0 )
-        |> group
-        |> List.map sumList2
-        |> List.reverse
 
 
 
+-- eventsByDay : List Event -> List Event
+-- eventsByDay list =
+--     let
+--         referenceDT =
+--             Time.millisToPosix 0
+--     in
+--     list
+--         --|> List.map (\r -> offsetTimeZone timeZoneOffset r)
+--         |> timeSeries
+--         |> timeSeriesRD
+--         |> List.sortBy Tuple.first
+--         |> fillGaps ( referenceDT, 0 )
+--         |> group
+--         |> List.map sumList2
+--         |> List.reverse
 -- correctTimeZone : Int -> List Event -> List Event
 -- correctTimeZone timeZoneOffset list =
 --     list
@@ -148,16 +154,6 @@ timeSeries : List Event -> List ( Posix, Float )
 timeSeries eventList =
     eventList
         |> List.map (\event -> ( event.insertedAt, event.duration |> TypedTime.convertToSeconds ))
-
-
-timeSeriesRD : List ( Posix, Float ) -> List ( Int, ( Posix, Float ) )
-timeSeriesRD listOfPairs =
-    List.map augmentPair listOfPairs
-
-
-augmentPair : ( Posix, Float ) -> ( Int, ( Posix, Float ) )
-augmentPair ( p, f ) =
-    ( DateTime.rataDieFromPosix p, ( p, f ) )
 
 
 filterValues : List ( a, Maybe b ) -> List ( a, b )
@@ -253,11 +249,6 @@ sumList list =
             List.head list |> Maybe.map Tuple.first
     in
     ( index, sum )
-
-
-rataDie : NaiveDateTime -> Int
-rataDie (NaiveDateTime str) =
-    DateTime.rataDieFromNaiveDateTime str - 737148
 
 
 

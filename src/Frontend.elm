@@ -4,11 +4,11 @@ module Frontend exposing (Model, app)
 -- import Main exposing (Logging)
 -- import Svg.Attributes exposing (k1)
 -- exposing (..)
+-- import Date exposing (Date)
 
 import Array exposing (map)
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
-import Date exposing (Date)
 import DateTime
 import Dict
 import Element exposing (..)
