@@ -28,7 +28,7 @@ import TestData exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (User, Username)
+import User exposing (Username)
 
 
 app =
@@ -87,7 +87,7 @@ type alias Model =
     , visibilityOfLogList : Visibility
 
     --
-    , currentUser : Maybe User
+    , currentUser : Maybe Username
     , username : String
     , password : String
 
@@ -307,7 +307,7 @@ update msg model =
                 Just log ->
                     let
                         r =
-                            addEventUsingString model.eventDurationString model.currentTime log model.logs
+                            addEventUsingString model.currentUser model.eventDurationString model.currentTime log model.logs
                     in
                     ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
@@ -333,7 +333,7 @@ update msg model =
                 , maybeCurrentLog = newMaybeCurrentLog
                 , maybeCurrentEvent = Nothing
               }
-            , sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent logId eventId)
+            , sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent model.currentUser logId eventId)
             )
 
         MakeNewLog ->
@@ -343,7 +343,7 @@ update msg model =
 
                 Just newLog_ ->
                     ( { model | maybeCurrentLog = Just newLog_, logs = newLog_ :: model.logs }
-                    , sendToBackend timeoutInMs SentToBackendResult (CreateLog newLog_)
+                    , sendToBackend timeoutInMs SentToBackendResult (CreateLog model.currentUser newLog_)
                     )
 
         ChangeLogName ->
@@ -357,7 +357,7 @@ update msg model =
                         changedLog =
                             { log | name = model.changedLogName }
                     in
-                    ( { model | logs = Log.replaceLog changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.changedLogName log) )
+                    ( { model | logs = Log.replaceLog changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
 
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )
@@ -426,7 +426,7 @@ update msg model =
                                     TypedTime.sum [ model.accumulatedTime, model.elapsedTime ]
 
                                 r =
-                                    addEvent duration model.currentTime log model.logs
+                                    addEvent model.currentUser duration model.currentTime log model.logs
                             in
                             ( { model
                                 | logs = r.logList
@@ -507,10 +507,10 @@ noUserView model =
         ]
 
 
-signedInUserView : Model -> User -> Element FrontendMsg
-signedInUserView model user =
+signedInUserView : Model -> Username -> Element FrontendMsg
+signedInUserView model username =
     column Style.mainColumnX
-        [ el [] (text <| "Signed in as " ++ user.username)
+        [ el [] (text <| "Signed in as " ++ username)
         , signOutButton model
         ]
 
@@ -1040,13 +1040,13 @@ newLog model =
         Nothing ->
             Nothing
 
-        Just user ->
+        Just username ->
             Just <|
                 { id = -1
                 , counter = 0
                 , name = model.newLogName
                 , note = ""
-                , username = user.username
+                , username = username
                 , data = []
                 }
 
@@ -1253,18 +1253,18 @@ type alias UpdateLogRecord =
     }
 
 
-addEventUsingString : String -> Posix -> Log -> List Log -> UpdateLogRecord
-addEventUsingString eventDurationString currentTime log logList =
+addEventUsingString : Maybe Username -> String -> Posix -> Log -> List Log -> UpdateLogRecord
+addEventUsingString maybeUsername eventDurationString currentTime log logList =
     case TypedTime.decodeHM eventDurationString of
         Nothing ->
             { currentLog = log, logList = logList, cmd = Cmd.none }
 
         Just duration ->
-            addEvent (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
+            addEvent maybeUsername (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
 
 
-addEvent : TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
-addEvent duration currentTime log logList =
+addEvent : Maybe Username -> TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
+addEvent maybeUsername duration currentTime log logList =
     let
         newLog_ =
             Log.insertEvent "" duration currentTime log
@@ -1273,7 +1273,7 @@ addEvent duration currentTime log logList =
             Log.replaceLog newLog_ logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend newLog_)
+            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUsername newLog_)
     in
     { currentLog = newLog_, logList = newLogs, cmd = cmd }
 

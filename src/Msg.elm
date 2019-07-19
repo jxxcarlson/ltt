@@ -13,26 +13,25 @@ import Log exposing (Event, EventGrouping(..), Log)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (User, Username)
+import User exposing (Username)
 
 
 type ToBackend
     = NoOpToBackend
     | ClientJoin
-    | RequestLogs (Maybe User)
-    | SendLogsToBackend (List Log)
+    | RequestLogs (Maybe Username)
     | SendSignInInfo String String
     | SendSignUpInfo String String
-    | SendLogToBackend Log
-    | CreateLog Log
-    | SendChangeLogName String Log
-    | BEDeleteEvent Int Int
+    | SendLogToBackend (Maybe Username) Log
+    | CreateLog (Maybe Username) Log
+    | SendChangeLogName (Maybe Username) String Log
+    | BEDeleteEvent (Maybe Username) Int Int
 
 
 type ToFrontend
     = NoOpToFrontend
     | SendLogsToFrontend (List Log)
-    | SendValidatedUser (Maybe User)
+    | SendValidatedUser (Maybe Username)
 
 
 type BackendMsg

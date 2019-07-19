@@ -1,5 +1,6 @@
 module Backend exposing (Model, app)
 
+import Dict exposing (Dict)
 import Frontend
 import Lamdera.Backend
 import Lamdera.Types exposing (..)
@@ -7,7 +8,7 @@ import Log exposing (Log)
 import Msg exposing (..)
 import Set exposing (Set)
 import TestData exposing (log1, log2, user1)
-import User exposing (User, addNewUser, validateUser)
+import User exposing (UserDict, UserInfo, Username, addNewUser, validateUser)
 
 
 app =
@@ -26,12 +27,14 @@ app =
 
 
 type alias Model =
-    { logs : List Log, users : List User, clients : Set ClientId }
+    { userDict : UserDict Log
+    , clients : Set ClientId
+    }
 
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { logs = [ log1, log2 ], users = [ user1 ], clients = Set.empty }, Cmd.none )
+    ( { userDict = TestData.userDict, clients = Set.empty }, Cmd.none )
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
@@ -59,17 +62,17 @@ updateFromFrontend clientId msg model =
             ( model, Cmd.none )
 
         SendSignInInfo username password ->
-            case User.validateUser model.users username password of
+            case User.validateUser model.userDict username password of
                 True ->
-                    ( model, sendToFrontend clientId <| SendValidatedUser (validUser username model.users) )
+                    ( model, sendToFrontend clientId <| SendValidatedUser (Just username) )
 
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
         SendSignUpInfo username password ->
-            case addNewUser username password model.users of
-                Just ( newUser, newUserList ) ->
-                    ( { model | users = newUserList }, sendToFrontend clientId <| SendValidatedUser (Just newUser) )
+            case addNewUser username password model.userDict of
+                Just newUserDict ->
+                    ( { model | userDict = newUserDict }, sendToFrontend clientId <| SendValidatedUser (Just username) )
 
                 Nothing ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
@@ -79,49 +82,111 @@ updateFromFrontend clientId msg model =
                 Nothing ->
                     ( model, sendToFrontend clientId (SendLogsToFrontend []) )
 
-                Just user ->
+                Just username ->
                     let
                         usersLogs =
-                            List.filter (\log -> log.username == user.username) model.logs
+                            Dict.get username model.userDict
+                                |> Maybe.map .data
+                                |> Maybe.withDefault []
                     in
                     ( model, sendToFrontend clientId (SendLogsToFrontend usersLogs) )
 
-        SendLogsToBackend logList ->
-            ( { model | logs = logList }, Cmd.none )
-
-        SendLogToBackend log ->
-            ( { model | logs = Log.replaceLog log model.logs }, Cmd.none )
-
-        CreateLog log ->
-            let
-                newLog =
-                    { log | id = List.length model.logs + 1 }
-            in
-            ( { model | logs = newLog :: model.logs }, Cmd.none )
-
-        SendChangeLogName newLogName log ->
-            -- ##
-            let
-                changedLog =
-                    { log | name = newLogName }
-            in
-            ( { model | logs = Log.replaceLog changedLog model.logs }, Cmd.none )
-
-        BEDeleteEvent logId eventId ->
-            case List.filter (\log -> log.id == logId) model.logs |> List.head of
+        SendLogToBackend maybeUserName log ->
+            case maybeUserName of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just log ->
-                    let
-                        changedData =
-                            List.filter (\event -> event.id /= eventId) log.data
+                Just username ->
+                    case Dict.get username model.userDict of
+                        Nothing ->
+                            ( model, Cmd.none )
 
-                        changedLog =
-                            { log | data = changedData }
-                    in
-                    ( { model | logs = Log.replaceLog changedLog model.logs }, Cmd.none )
+                        Just userInfo ->
+                            let
+                                newLogs =
+                                    Log.replaceLog log userInfo.data
 
+                                newUserInfo =
+                                    { userInfo | data = newLogs }
+                            in
+                            ( { model | userDict = Dict.update username (\x -> Just newUserInfo) model.userDict }, Cmd.none )
+
+        CreateLog maybeUsername log ->
+            case maybeUsername of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just username ->
+                    case Dict.get username model.userDict of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just userInfo ->
+                            let
+                                newLog =
+                                    { log | id = List.length userInfo.data + 1 }
+
+                                updater : Maybe (UserInfo Log) -> Maybe (UserInfo Log)
+                                updater =
+                                    Maybe.map (\uInfo -> { uInfo | data = log :: uInfo.data })
+                            in
+                            ( { model | userDict = Dict.update username updater model.userDict }, Cmd.none )
+
+        SendChangeLogName maybeUsername newLogName log ->
+            case maybeUsername of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just username ->
+                    case Dict.get username model.userDict of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just userInfo ->
+                            let
+                                changedLog =
+                                    { log | name = newLogName }
+
+                                updater : Maybe (UserInfo Log) -> Maybe (UserInfo Log)
+                                updater =
+                                    Maybe.map (\uInfo -> { uInfo | data = Log.replaceLog changedLog uInfo.data })
+                            in
+                            ( { model | userDict = Dict.update username updater model.userDict }, Cmd.none )
+
+        BEDeleteEvent maybeUsername logId eventId ->
+            case maybeUsername of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just username ->
+                    ( model, Cmd.none )
+
+        -- case Dict.get username model.userDict of
+        --     Nothing ->
+        --         ( model, Cmd.none )
+        --
+        --     Just userInfo ->
+        --         let
+        --             maybeTargetLog : Maybe Log
+        --             maybeTargetLog =
+        --                 List.filter (\log -> log.id == logId) userInfo.data
+        --                     |> List.head
+        --
+        --             maybeChangedData =
+        --                 Maybe.map (List.filter (\event -> event.id /= eventId)) (Maybe.map .data maybeTargetLog)
+        --
+        --             maybeChangedLog =
+        --
+        --             updater : Log -> Maybe (UserInfo Log) -> Maybe (UserInfo Log)
+        --             updater changedLog_ =
+        --                 Maybe.map (\uInfo -> { uInfo | data = Log.replaceLog changedLog_ uInfo.data })
+        --         in
+        --         -- case maybeChangedLog of
+        --             Nothing ->
+        --                 ( model, Cmd.none )
+        --
+        --             Just changedLog ->
+        --                 ( { model | userDict = Dict.update username (updater changedLog) model.userDict }, Cmd.none )
         ClientJoin ->
             ( model, Cmd.none )
 
@@ -135,13 +200,3 @@ sendToFrontend clientId msg =
 --
 -- HELPERS
 --
-
-
-validUser : String -> List User -> Maybe User
-validUser username userList =
-    case List.filter (\user -> user.username == username) userList of
-        [ user ] ->
-            Just { user | encryptedPassword = "" }
-
-        _ ->
-            Nothing

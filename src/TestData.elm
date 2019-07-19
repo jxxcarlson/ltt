@@ -1,8 +1,18 @@
-module TestData exposing (e1, e2, f1, f2, log1, log2, user1, user2)
+module TestData exposing (e1, e2, f1, f2, log1, log2, user1, user2, userDict)
 
+import Dict
 import Log exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
+import User exposing (UserDict)
+
+
+userDict : UserDict Log
+userDict =
+    Dict.fromList
+        [ ( "jxxcarlson", { encryptedPassword = "!@oboLocol@!", data = [ log1, log2 ] } )
+        , ( "socrates", { encryptedPassword = "!@citpeks@!", data = [] } )
+        ]
 
 
 e1 : Event

@@ -1,14 +1,24 @@
-module User exposing (User, Username, addNewUser, validateUser)
+module User exposing (UserDict, UserInfo, Username, addNewUser, getData, validateUser)
+
+import Dict exposing (Dict)
 
 
 type alias Username =
     String
 
 
-type alias User =
-    { username : Username
-    , encryptedPassword : String
-    }
+type alias UserInfo a =
+    { encryptedPassword : String, data : List a }
+
+
+type alias UserDict a =
+    Dict Username (UserInfo a)
+
+
+getData : Username -> UserDict a -> Maybe (List a)
+getData username dict =
+    Dict.get username dict
+        |> Maybe.map .data
 
 
 encrypt : String -> String
@@ -21,40 +31,24 @@ validatePassword password encryptedPassword =
     encrypt password == encryptedPassword
 
 
-validateUser userList username passWord =
-    case List.filter (\user -> username == user.username) userList of
-        [] ->
+validateUser : UserDict a -> Username -> String -> Bool
+validateUser userDict username passWord =
+    case Dict.get username userDict of
+        Nothing ->
             False
 
-        [ user ] ->
-            validatePassword passWord user.encryptedPassword
-
-        _ ->
-            False
+        Just userInfo ->
+            validatePassword passWord userInfo.encryptedPassword
 
 
-addNewUser : String -> String -> List User -> Maybe ( User, List User )
-addNewUser username password userList =
-    case ( usernameExists username userList, passwordErrors password ) of
+addNewUser : String -> String -> UserDict a -> Maybe (UserDict a)
+addNewUser username password userDict =
+    case ( Dict.member username userDict, passwordErrors password ) of
         ( False, [] ) ->
-            Just (addNewUser_ username password userList)
+            Just <| Dict.insert username { encryptedPassword = encrypt password, data = [] } userDict
 
         _ ->
             Nothing
-
-
-addNewUser_ : String -> String -> List User -> ( User, List User )
-addNewUser_ username password userList =
-    let
-        newUser =
-            { username = username, encryptedPassword = encrypt password }
-    in
-    ( newUser, newUser :: userList )
-
-
-usernameExists : String -> List User -> Bool
-usernameExists username userList =
-    (List.filter (\user -> user.username == username) userList |> List.length) > 0
 
 
 passwordErrors : String -> List String
