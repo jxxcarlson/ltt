@@ -4,6 +4,7 @@ module Frontend exposing (Model, app)
 -- import Main exposing (Logging)
 -- import Svg.Attributes exposing (k1)
 
+import Array exposing (map)
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
 import Date exposing (Date)
@@ -94,6 +95,7 @@ type alias Model =
     , eventDateFilterString : String
     , logs : List Log
     , newLogName : String
+    , changedLogName : String
     , maybeCurrentLog : Maybe Log
     , maybeCurrentEvent : Maybe Event
     , logFilterString : String
@@ -135,6 +137,7 @@ init =
       , eventDateFilterString = ""
       , logs = []
       , newLogName = ""
+      , changedLogName = ""
       , maybeCurrentLog = Nothing
       , maybeCurrentEvent = Nothing
       , logFilterString = ""
@@ -271,8 +274,22 @@ update msg model =
                 maybeLog =
                     List.filter (\log -> log.id == logId) model.logs
                         |> List.head
+
+                maybeLogName =
+                    case maybeLog of
+                        Nothing ->
+                            ""
+
+                        Just log ->
+                            log.name
             in
-            ( { model | maybeCurrentEvent = Nothing, maybeCurrentLog = maybeLog }, Cmd.none )
+            ( { model
+                | maybeCurrentEvent = Nothing
+                , maybeCurrentLog = maybeLog
+                , changedLogName = maybeLogName
+              }
+            , Cmd.none
+            )
 
         SetCurrentEvent event_ ->
             ( { model | maybeCurrentEvent = Just event_ }, Cmd.none )
@@ -309,8 +326,14 @@ update msg model =
                     , sendToBackend timeoutInMs SentToBackendResult (CreateLog newLog_)
                     )
 
+        ChangeLogName ->
+            ( model, Cmd.none )
+
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )
+
+        GotChangedLogName str ->
+            ( { model | changedLogName = str }, Cmd.none )
 
         -- TIMER
         TimeChange time ->
@@ -527,11 +550,29 @@ editingView model =
         , row []
             [ logListPanel model
             , eventListDisplay model
-
-            -- , eventPanel model
             ]
-        , row [ spacing 12 ] []
+        , row [ spacing 12 ]
+            [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
+            , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
+            ]
         ]
+
+
+changeLogNameButton : Element FrontendMsg
+changeLogNameButton =
+    Input.button Style.button
+        { onPress = Just ChangeLogName
+        , label = Element.text "Change log name"
+        }
+
+
+inputChangeLogName model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotChangedLogName
+        , text = model.changedLogName
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
+        }
 
 
 
@@ -559,7 +600,7 @@ toggleLogsButton : Model -> Element FrontendMsg
 toggleLogsButton model =
     let
         message =
-            showOne (model.visibilityOfLogList == Visible) "Hide Logs" "Show Logs"
+            showOne (model.visibilityOfLogList == Visible) "Hide log list" "Show log list"
     in
     Input.button Style.headerButton
         { onPress = Just ToggleLogs
@@ -569,7 +610,7 @@ toggleLogsButton model =
 
 userValidationModeButton : Model -> Element FrontendMsg
 userValidationModeButton model =
-    Input.button Style.headerButton
+    Input.button ((Style.select <| model.appMode == UserValidation) Style.selectedHeaderButton Style.headerButton)
         { onPress = Just (SetAppMode UserValidation)
         , label = Element.text "User"
         }
@@ -577,7 +618,7 @@ userValidationModeButton model =
 
 loggingModeButton : Model -> Element FrontendMsg
 loggingModeButton model =
-    Input.button Style.headerButton
+    Input.button ((Style.select <| model.appMode == Logging) Style.selectedHeaderButton Style.headerButton)
         { onPress = Just (SetAppMode Logging)
         , label = Element.text "Logs"
         }
@@ -585,7 +626,7 @@ loggingModeButton model =
 
 editingModeButton : Model -> Element FrontendMsg
 editingModeButton model =
-    Input.button Style.headerButton
+    Input.button ((Style.select <| model.appMode == Editing) Style.selectedHeaderButton Style.headerButton)
         { onPress = Just (SetAppMode Editing)
         , label = Element.text "Edit"
         }

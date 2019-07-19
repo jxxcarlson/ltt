@@ -67,6 +67,8 @@ type FrontendMsg
     | GotNewLogName String
     | GotLogFilter String
     | GotEventDateFilter String
+    | GotChangedLogName String
+    | ChangeLogName
 
 
 type TimerCommand

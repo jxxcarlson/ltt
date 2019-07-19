@@ -31,6 +31,8 @@ module Style exposing
     , orange
     , preWrap
     , red
+    , select
+    , selectedHeaderButton
     , shadedColumn
     , signinColumn
     , smallButton
@@ -46,6 +48,16 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes
+
+
+select : Bool -> List (Element.Attr () msg) -> List (Element.Attr () msg) -> List (Element.Attr () msg)
+select bit style1 style2 =
+    case bit of
+        True ->
+            style1
+
+        False ->
+            style2
 
 
 tableHeading =
@@ -86,6 +98,11 @@ button =
 headerButton : List (Element.Attr () msg)
 headerButton =
     [ Background.color white, Font.color black, Element.paddingXY 10 6 ] ++ basicButtonsStyle
+
+
+selectedHeaderButton : List (Element.Attr () msg)
+selectedHeaderButton =
+    [ Background.color black, Font.color white, Element.paddingXY 10 6 ] ++ basicButtonsStyle
 
 
 inactiveButton : List (Element.Attr () msg)
@@ -284,6 +301,10 @@ darkRed =
 
 red =
     Element.rgb 1.0 0.0 0.0
+
+
+pink =
+    Element.rgb 1.0 0.9 0.9
 
 
 white =
