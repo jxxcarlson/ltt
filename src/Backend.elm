@@ -9,6 +9,7 @@ import Msg exposing (..)
 import Set exposing (Set)
 import TestData exposing (log1, log2, user1)
 import User exposing (UserDict, UserInfo, Username, addNewUser, validateUser)
+import UserLog
 
 
 app =
@@ -117,20 +118,7 @@ updateFromFrontend clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    case Dict.get username model.userDict of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just userInfo ->
-                            let
-                                newLog =
-                                    { log | id = List.length userInfo.data + 1 }
-
-                                updater : Maybe (UserInfo Log) -> Maybe (UserInfo Log)
-                                updater =
-                                    Maybe.map (\uInfo -> { uInfo | data = log :: uInfo.data })
-                            in
-                            ( { model | userDict = Dict.update username updater model.userDict }, Cmd.none )
+                    ( { model | userDict = UserLog.add username log model.userDict }, Cmd.none )
 
         SendChangeLogName maybeUsername newLogName log ->
             case maybeUsername of
