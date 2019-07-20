@@ -1,18 +1,36 @@
-module TestData exposing (e1, e2, f1, f2, log1, log2, user1, user2, userDict)
+module TestData exposing (passwordDict, userDict)
 
 import Dict
 import Log exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
-import User exposing (UserDict)
+import User exposing (PasswordDict, UserDict, UserInfo)
+
+
+passwordDict : PasswordDict
+passwordDict =
+    Dict.fromList
+        [ ( "jxxcarlson", "!@oboLocol@!" )
+        , ( "socrates", "!@citpeks@!" )
+        ]
 
 
 userDict : UserDict Log
 userDict =
     Dict.fromList
-        [ ( "jxxcarlson", { encryptedPassword = "!@oboLocol@!", email = "jxxcarlson@gmail.com", admin = True, data = [ log1, log2 ] } )
-        , ( "socrates", { encryptedPassword = "!@citpeks@!", email = "socrates@philosophers.org", admin = False, data = [] } )
+        [ ( "jxxcarlson", userInfo1 )
+        , ( "socrates", userInfo2 )
         ]
+
+
+userInfo1 : UserInfo Log
+userInfo1 =
+    { email = "jxxcarlson@gmail.com", admin = True, data = [ log1, log2 ] }
+
+
+userInfo2 : UserInfo Log
+userInfo2 =
+    { email = "socrates@philosophers.org", admin = False, data = [] }
 
 
 e1 : Event
@@ -68,18 +86,4 @@ log2 =
     , note = "Get ready for conference"
     , username = "jxxcarlson"
     , data = [ f1, f2 ]
-    }
-
-
-user1 =
-    { username = "jxxcarlson"
-    , encryptedPassword = "!@oboLocol@!"
-    , email = "jxxcarlson@gmail.com"
-    }
-
-
-user2 =
-    { username = "socrates"
-    , encryptedPassword = "!@citpeks@!"
-    , email = "philosopher@socrtes.org"
     }

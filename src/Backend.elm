@@ -7,8 +7,8 @@ import Lamdera.Types exposing (..)
 import Log exposing (Log)
 import Msg exposing (..)
 import Set exposing (Set)
-import TestData exposing (log1, log2, user1)
-import User exposing (UserDict, UserInfo, Username, addNewUser, validateUser)
+import TestData exposing (passwordDict, userDict)
+import User exposing (PasswordDict, UserDict, UserInfo, Username)
 import UserLog
 
 
@@ -28,14 +28,20 @@ app =
 
 
 type alias Model =
-    { userDict : UserDict Log
+    { passwordDict : PasswordDict
+    , userDict : UserDict Log
     , clients : Set ClientId
     }
 
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { userDict = TestData.userDict, clients = Set.empty }, Cmd.none )
+    ( { passwordDict = TestData.passwordDict
+      , userDict = TestData.userDict
+      , clients = Set.empty
+      }
+    , Cmd.none
+    )
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
@@ -63,7 +69,7 @@ updateFromFrontend clientId msg model =
             ( model, Cmd.none )
 
         SendSignInInfo username password ->
-            case User.validateUser model.userDict username password of
+            case User.validateUser model.passwordDict username password of
                 True ->
                     ( model, sendToFrontend clientId <| SendValidatedUser (Just username) )
 
@@ -71,11 +77,13 @@ updateFromFrontend clientId msg model =
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
         SendSignUpInfo username password email ->
-            case addNewUser username password email model.userDict of
-                Just newUserDict ->
-                    ( { model | userDict = newUserDict }, sendToFrontend clientId <| SendValidatedUser (Just username) )
+            case User.add username password email ( model.passwordDict, model.userDict ) of
+                Ok ( newPasswordDict, newUserDict ) ->
+                    ( { model | userDict = newUserDict, passwordDict = newPasswordDict }
+                    , sendToFrontend clientId <| SendValidatedUser (Just username)
+                    )
 
-                Nothing ->
+                Err str ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
         RequestLogs maybeUser ->

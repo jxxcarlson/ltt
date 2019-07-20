@@ -1,4 +1,4 @@
-module User exposing (UserDict, UserInfo, Username, addNewUser, getData, validateUser)
+module User exposing (Password, PasswordDict, UserDict, UserInfo, Username, add, getData, validateUser)
 
 import Dict exposing (Dict)
 
@@ -7,12 +7,20 @@ type alias Username =
     String
 
 
-type alias UserInfo a =
-    { encryptedPassword : String, email : String, admin : Bool, data : List a }
+type alias Password =
+    String
+
+
+type alias PasswordDict =
+    Dict Username Password
 
 
 type alias UserDict a =
     Dict Username (UserInfo a)
+
+
+type alias UserInfo a =
+    { email : String, admin : Bool, data : List a }
 
 
 getData : Username -> UserDict a -> Maybe (List a)
@@ -31,31 +39,34 @@ validatePassword password encryptedPassword =
     encrypt password == encryptedPassword
 
 
-validateUser : UserDict a -> Username -> String -> Bool
-validateUser userDict username passWord =
-    case Dict.get username userDict of
+validateUser : PasswordDict -> Username -> String -> Bool
+validateUser passwordDict username passWord =
+    case Dict.get username passwordDict of
         Nothing ->
             False
 
-        Just userInfo ->
-            validatePassword passWord userInfo.encryptedPassword
+        Just encryptedPassword ->
+            validatePassword passWord encryptedPassword
 
 
-addNewUser : String -> String -> String -> UserDict a -> Maybe (UserDict a)
-addNewUser username password email userDict =
+add : String -> String -> String -> ( PasswordDict, UserDict a ) -> Result String ( PasswordDict, UserDict a )
+add username password email ( passwordDict, userDict ) =
     case ( Dict.member username userDict, passwordErrors password ) of
         ( False, [] ) ->
-            Just <|
-                Dict.insert username
-                    { encryptedPassword = encrypt password
-                    , email = email
-                    , admin = False
-                    , data = []
-                    }
-                    userDict
+            let
+                newPasswordDict =
+                    Dict.insert username (encrypt password) passwordDict
+
+                newUserInfo =
+                    { email = email, admin = False, data = [] }
+
+                newUserDict =
+                    Dict.insert username newUserInfo userDict
+            in
+            Ok ( newPasswordDict, newUserDict )
 
         _ ->
-            Nothing
+            Err "user already exists"
 
 
 passwordErrors : String -> List String
