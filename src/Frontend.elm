@@ -28,7 +28,7 @@ import TestData exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (Username)
+import User exposing (User, Username)
 
 
 app =
@@ -87,7 +87,7 @@ type alias Model =
     , visibilityOfLogList : Visibility
 
     --
-    , currentUser : Maybe Username
+    , currentUser : Maybe User
     , username : String
     , password : String
     , email : String
@@ -501,12 +501,28 @@ noUserView model =
         ]
 
 
-signedInUserView : Model -> Username -> Element FrontendMsg
-signedInUserView model username =
+signedInUserView : Model -> User -> Element FrontendMsg
+signedInUserView model user =
     column Style.mainColumnX
-        [ el [] (text <| "Signed in as " ++ username)
+        [ el [] (text <| "Signed in as " ++ user.username)
         , signOutButton model
+        , adminStatus model
         ]
+
+
+adminStatus : Model -> Element FrontendMsg
+adminStatus model =
+    case model.currentUser of
+        Nothing ->
+            Element.none
+
+        Just user ->
+            case user.admin of
+                False ->
+                    Element.none
+
+                True ->
+                    el [] (text "Admin")
 
 
 inputUserName model =
@@ -1034,13 +1050,13 @@ newLog model =
         Nothing ->
             Nothing
 
-        Just username ->
+        Just user ->
             Just <|
                 { id = -1
                 , counter = 0
                 , name = model.newLogName
+                , username = user.username
                 , note = ""
-                , username = username
                 , data = []
                 }
 
@@ -1247,18 +1263,18 @@ type alias UpdateLogRecord =
     }
 
 
-addEventUsingString : Maybe Username -> String -> Posix -> Log -> List Log -> UpdateLogRecord
-addEventUsingString maybeUsername eventDurationString currentTime log logList =
+addEventUsingString : Maybe User -> String -> Posix -> Log -> List Log -> UpdateLogRecord
+addEventUsingString maybeUser eventDurationString currentTime log logList =
     case TypedTime.decodeHM eventDurationString of
         Nothing ->
             { currentLog = log, logList = logList, cmd = Cmd.none }
 
         Just duration ->
-            addEvent maybeUsername (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
+            addEvent maybeUser (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
 
 
-addEvent : Maybe Username -> TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
-addEvent maybeUsername duration currentTime log logList =
+addEvent : Maybe User -> TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
+addEvent maybeUser duration currentTime log logList =
     let
         newLog_ =
             Log.insertEvent "" duration currentTime log
@@ -1267,7 +1283,7 @@ addEvent maybeUsername duration currentTime log logList =
             Log.replaceLog newLog_ logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUsername newLog_)
+            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)
     in
     { currentLog = newLog_, logList = newLogs, cmd = cmd }
 

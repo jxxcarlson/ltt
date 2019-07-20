@@ -1,4 +1,4 @@
-module User exposing (Password, PasswordDict, UserDict, UserInfo, Username, add, fromDict, getData, validateUser)
+module User exposing (Password, PasswordDict, User, UserDict, UserInfo, Username, add, fromDict, getData, validateUser)
 
 import Dict exposing (Dict)
 

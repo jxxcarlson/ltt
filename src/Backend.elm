@@ -71,7 +71,7 @@ updateFromFrontend clientId msg model =
         SendSignInInfo username password ->
             case User.validateUser model.passwordDict username password of
                 True ->
-                    ( model, sendToFrontend clientId <| SendValidatedUser (Just username) )
+                    ( model, sendToFrontend clientId <| SendValidatedUser (User.fromDict username model.userDict) )
 
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
@@ -80,7 +80,7 @@ updateFromFrontend clientId msg model =
             case User.add username password email ( model.passwordDict, model.userDict ) of
                 Ok ( newPasswordDict, newUserDict ) ->
                     ( { model | userDict = newUserDict, passwordDict = newPasswordDict }
-                    , sendToFrontend clientId <| SendValidatedUser (Just username)
+                    , sendToFrontend clientId <| SendValidatedUser (User.fromDict username model.userDict)
                     )
 
                 Err str ->
@@ -91,10 +91,10 @@ updateFromFrontend clientId msg model =
                 Nothing ->
                     ( model, sendToFrontend clientId (SendLogsToFrontend []) )
 
-                Just username ->
+                Just user ->
                     let
                         usersLogs =
-                            Dict.get username model.userDict
+                            Dict.get user.username model.userDict
                                 |> Maybe.map .data
                                 |> Maybe.withDefault []
                     in
@@ -105,36 +105,36 @@ updateFromFrontend clientId msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just username ->
-                    ( { model | userDict = UserLog.update username log model.userDict }, Cmd.none )
+                Just user ->
+                    ( { model | userDict = UserLog.update user.username log model.userDict }, Cmd.none )
 
         CreateLog maybeUsername log ->
             case maybeUsername of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just username ->
-                    ( { model | userDict = UserLog.create username log model.userDict }, Cmd.none )
+                Just user ->
+                    ( { model | userDict = UserLog.create user.username log model.userDict }, Cmd.none )
 
         SendChangeLogName maybeUsername newLogName log ->
             case maybeUsername of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just username ->
+                Just user ->
                     let
                         changedLog =
                             { log | name = newLogName }
                     in
-                    ( { model | userDict = UserLog.update username changedLog model.userDict }, Cmd.none )
+                    ( { model | userDict = UserLog.update user.username changedLog model.userDict }, Cmd.none )
 
         BEDeleteEvent maybeUsername log eventId ->
             case maybeUsername of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just username ->
-                    ( { model | userDict = UserLog.deleteEvent username log model.userDict eventId }, Cmd.none )
+                Just user ->
+                    ( { model | userDict = UserLog.deleteEvent user.username log model.userDict eventId }, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )
