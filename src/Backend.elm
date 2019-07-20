@@ -98,19 +98,7 @@ updateFromFrontend clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    case Dict.get username model.userDict of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just userInfo ->
-                            let
-                                newLogs =
-                                    Log.replaceLog log userInfo.data
-
-                                newUserInfo =
-                                    { userInfo | data = newLogs }
-                            in
-                            ( { model | userDict = Dict.update username (\x -> Just newUserInfo) model.userDict }, Cmd.none )
+                    ( { model | userDict = UserLog.update username log model.userDict }, Cmd.none )
 
         CreateLog maybeUsername log ->
             case maybeUsername of
@@ -118,7 +106,7 @@ updateFromFrontend clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    ( { model | userDict = UserLog.add username log model.userDict }, Cmd.none )
+                    ( { model | userDict = UserLog.create username log model.userDict }, Cmd.none )
 
         SendChangeLogName maybeUsername newLogName log ->
             case maybeUsername of

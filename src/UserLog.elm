@@ -1,12 +1,12 @@
-module UserLog exposing (add)
+module UserLog exposing (create, update)
 
 import Dict
 import Log exposing (Log)
 import User exposing (UserDict, UserInfo, Username)
 
 
-add : Username -> Log -> UserDict Log -> UserDict Log
-add username log userDict =
+create : Username -> Log -> UserDict Log -> UserDict Log
+create username log userDict =
     case Dict.get username userDict of
         Nothing ->
             userDict
@@ -21,3 +21,20 @@ add username log userDict =
                     Maybe.map (\uInfo -> { uInfo | data = log :: uInfo.data })
             in
             Dict.update username updater userDict
+
+
+update : Username -> Log -> UserDict Log -> UserDict Log
+update username log userDict =
+    case Dict.get username userDict of
+        Nothing ->
+            userDict
+
+        Just userInfo ->
+            let
+                newLogs =
+                    Log.replaceLog log userInfo.data
+
+                newUserInfo =
+                    { userInfo | data = newLogs }
+            in
+            Dict.update username (\x -> Just newUserInfo) userDict
