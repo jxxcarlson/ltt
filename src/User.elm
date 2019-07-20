@@ -8,7 +8,7 @@ type alias Username =
 
 
 type alias UserInfo a =
-    { encryptedPassword : String, data : List a }
+    { encryptedPassword : String, email : String, admin : Bool, data : List a }
 
 
 type alias UserDict a =
@@ -41,11 +41,18 @@ validateUser userDict username passWord =
             validatePassword passWord userInfo.encryptedPassword
 
 
-addNewUser : String -> String -> UserDict a -> Maybe (UserDict a)
-addNewUser username password userDict =
+addNewUser : String -> String -> String -> UserDict a -> Maybe (UserDict a)
+addNewUser username password email userDict =
     case ( Dict.member username userDict, passwordErrors password ) of
         ( False, [] ) ->
-            Just <| Dict.insert username { encryptedPassword = encrypt password, data = [] } userDict
+            Just <|
+                Dict.insert username
+                    { encryptedPassword = encrypt password
+                    , email = email
+                    , admin = False
+                    , data = []
+                    }
+                    userDict
 
         _ ->
             Nothing

@@ -21,7 +21,7 @@ type ToBackend
     | ClientJoin
     | RequestLogs (Maybe Username)
     | SendSignInInfo String String
-    | SendSignUpInfo String String
+    | SendSignUpInfo String String String
     | SendLogToBackend (Maybe Username) Log
     | CreateLog (Maybe Username) Log
     | SendChangeLogName (Maybe Username) String Log

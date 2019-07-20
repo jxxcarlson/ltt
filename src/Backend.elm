@@ -70,8 +70,8 @@ updateFromFrontend clientId msg model =
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
-        SendSignUpInfo username password ->
-            case addNewUser username password model.userDict of
+        SendSignUpInfo username password email ->
+            case addNewUser username password email model.userDict of
                 Just newUserDict ->
                     ( { model | userDict = newUserDict }, sendToFrontend clientId <| SendValidatedUser (Just username) )
 

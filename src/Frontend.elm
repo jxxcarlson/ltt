@@ -90,6 +90,7 @@ type alias Model =
     , currentUser : Maybe Username
     , username : String
     , password : String
+    , email : String
 
     --
     , eventDurationString : String
@@ -131,6 +132,7 @@ initialModel =
     , currentUser = Nothing
     , username = ""
     , password = ""
+    , email = ""
 
     --
     , eventDurationString = ""
@@ -243,7 +245,7 @@ update msg model =
             ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
 
         SignUp ->
-            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password) )
+            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password model.email) )
 
         SignOut ->
             ( initialModel, Cmd.none )

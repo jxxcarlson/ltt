@@ -10,8 +10,8 @@ import User exposing (UserDict)
 userDict : UserDict Log
 userDict =
     Dict.fromList
-        [ ( "jxxcarlson", { encryptedPassword = "!@oboLocol@!", data = [ log1, log2 ] } )
-        , ( "socrates", { encryptedPassword = "!@citpeks@!", data = [] } )
+        [ ( "jxxcarlson", { encryptedPassword = "!@oboLocol@!", email = "jxxcarlson@gmail.com", admin = True, data = [ log1, log2 ] } )
+        , ( "socrates", { encryptedPassword = "!@citpeks@!", email = "socrates@philosophers.org", admin = False, data = [] } )
         ]
 
 
@@ -74,10 +74,12 @@ log2 =
 user1 =
     { username = "jxxcarlson"
     , encryptedPassword = "!@oboLocol@!"
+    , email = "jxxcarlson@gmail.com"
     }
 
 
 user2 =
     { username = "socrates"
     , encryptedPassword = "!@citpeks@!"
+    , email = "philosopher@socrtes.org"
     }
