@@ -1,4 +1,4 @@
-module User exposing (Password, PasswordDict, UserDict, UserInfo, Username, add, getData, validateUser)
+module User exposing (Password, PasswordDict, UserDict, UserInfo, Username, add, fromDict, getData, validateUser)
 
 import Dict exposing (Dict)
 
@@ -21,6 +21,20 @@ type alias UserDict a =
 
 type alias UserInfo a =
     { email : String, admin : Bool, data : List a }
+
+
+type alias User =
+    { username : Username, email : String, admin : Bool }
+
+
+fromDict : Username -> UserDict a -> Maybe User
+fromDict username userDict =
+    case Dict.get username userDict of
+        Nothing ->
+            Nothing
+
+        Just userInfo ->
+            Just { username = username, email = userInfo.email, admin = userInfo.admin }
 
 
 getData : Username -> UserDict a -> Maybe (List a)
