@@ -25,7 +25,7 @@ type ToBackend
     | SendLogToBackend (Maybe Username) Log
     | CreateLog (Maybe Username) Log
     | SendChangeLogName (Maybe Username) String Log
-    | BEDeleteEvent (Maybe Username) Int Int
+    | BEDeleteEvent (Maybe Username) Log Int
 
 
 type ToFrontend

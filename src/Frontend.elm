@@ -312,29 +312,21 @@ update msg model =
                     ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
         DeleteEvent logId eventId ->
-            let
-                ( newMaybeCurrentLog, newLogs ) =
-                    case model.maybeCurrentLog of
-                        Nothing ->
-                            ( Nothing, model.logs )
+            case model.maybeCurrentLog of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                        Just log ->
-                            let
-                                changedData =
-                                    List.filter (\event -> event.id /= eventId) log.data
-
-                                changedLog =
-                                    { log | data = changedData }
-                            in
-                            ( Just changedLog, Log.replaceLog changedLog model.logs )
-            in
-            ( { model
-                | logs = newLogs
-                , maybeCurrentLog = newMaybeCurrentLog
-                , maybeCurrentEvent = Nothing
-              }
-            , sendToBackend timeoutInMs SentToBackendResult (BEDeleteEvent model.currentUser logId eventId)
-            )
+                Just log ->
+                    let
+                        changedLog =
+                            Log.deleteEvent log eventId
+                    in
+                    ( { model
+                        | logs = Log.replaceLog changedLog model.logs
+                        , maybeCurrentLog = Just changedLog
+                      }
+                    , sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend model.currentUser changedLog)
+                    )
 
         MakeNewLog ->
             case newLog model of

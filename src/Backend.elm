@@ -114,55 +114,20 @@ updateFromFrontend clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    case Dict.get username model.userDict of
-                        Nothing ->
-                            ( model, Cmd.none )
+                    let
+                        changedLog =
+                            { log | name = newLogName }
+                    in
+                    ( { model | userDict = UserLog.update username changedLog model.userDict }, Cmd.none )
 
-                        Just userInfo ->
-                            let
-                                changedLog =
-                                    { log | name = newLogName }
-
-                                updater : Maybe (UserInfo Log) -> Maybe (UserInfo Log)
-                                updater =
-                                    Maybe.map (\uInfo -> { uInfo | data = Log.replaceLog changedLog uInfo.data })
-                            in
-                            ( { model | userDict = Dict.update username updater model.userDict }, Cmd.none )
-
-        BEDeleteEvent maybeUsername logId eventId ->
+        BEDeleteEvent maybeUsername log eventId ->
             case maybeUsername of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just username ->
-                    ( model, Cmd.none )
+                    ( { model | userDict = UserLog.deleteEvent username log model.userDict eventId }, Cmd.none )
 
-        -- case Dict.get username model.userDict of
-        --     Nothing ->
-        --         ( model, Cmd.none )
-        --
-        --     Just userInfo ->
-        --         let
-        --             maybeTargetLog : Maybe Log
-        --             maybeTargetLog =
-        --                 List.filter (\log -> log.id == logId) userInfo.data
-        --                     |> List.head
-        --
-        --             maybeChangedData =
-        --                 Maybe.map (List.filter (\event -> event.id /= eventId)) (Maybe.map .data maybeTargetLog)
-        --
-        --             maybeChangedLog =
-        --
-        --             updater : Log -> Maybe (UserInfo Log) -> Maybe (UserInfo Log)
-        --             updater changedLog_ =
-        --                 Maybe.map (\uInfo -> { uInfo | data = Log.replaceLog changedLog_ uInfo.data })
-        --         in
-        --         -- case maybeChangedLog of
-        --             Nothing ->
-        --                 ( model, Cmd.none )
-        --
-        --             Just changedLog ->
-        --                 ( { model | userDict = Dict.update username (updater changedLog) model.userDict }, Cmd.none )
         ClientJoin ->
             ( model, Cmd.none )
 

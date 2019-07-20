@@ -4,6 +4,7 @@ module Log exposing
     , EventGrouping(..)
     , Log
     , dateFilter
+    , deleteEvent
     , eventSum
     , eventsByDay
     , filter
@@ -260,6 +261,15 @@ sumList list =
 replaceLog : Log -> List Log -> List Log
 replaceLog log listLogs =
     LE.setIf (\item -> item.id == log.id) log listLogs
+
+
+deleteEvent : Log -> Int -> Log
+deleteEvent log eventId =
+    let
+        newData =
+            List.filter (\event -> event.id /= eventId) log.data
+    in
+    { log | data = newData }
 
 
 insertEvent : String -> TypedTime -> Posix -> Log -> Log
