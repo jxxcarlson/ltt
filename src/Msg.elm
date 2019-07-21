@@ -60,6 +60,7 @@ type FrontendMsg
     | ToggleLogs
       --
     | TimeChange Posix
+    | GetTimeZone Time.Zone
     | TC TimerCommand
     | UpdateElapsedTime Float
     | GotValueString String

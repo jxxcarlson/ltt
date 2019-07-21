@@ -15,7 +15,7 @@ module DateTime exposing
 -- import Date exposing (Date, Unit(..), diff)
 -- import Svg.Attributes exposing (targetY)
 
-import Time exposing (Posix)
+import Time exposing (Posix, Zone)
 
 
 type NaiveDateTime
@@ -93,29 +93,29 @@ naiveDateStringFromPosix posix =
     y ++ "-" ++ m ++ "-" ++ d
 
 
-humanDateStringFromPosix : Posix -> String
-humanDateStringFromPosix posix =
+humanDateStringFromPosix : Zone -> Posix -> String
+humanDateStringFromPosix zone posix =
     let
         y =
-            Time.toYear Time.utc posix |> String.fromInt
+            Time.toYear zone posix |> String.fromInt
 
         m =
-            Time.toMonth Time.utc posix |> monthToString
+            Time.toMonth zone posix |> monthToString
 
         d =
-            Time.toDay Time.utc posix |> String.fromInt |> String.padLeft 2 '0'
+            Time.toDay zone posix |> String.fromInt |> String.padLeft 2 '0'
     in
     d ++ " " ++ m ++ " " ++ y
 
 
-naiveTimeStringFromPosix : Posix -> String
-naiveTimeStringFromPosix posix =
+naiveTimeStringFromPosix : Zone -> Posix -> String
+naiveTimeStringFromPosix zone posix =
     let
         h =
-            Time.toHour Time.utc posix |> String.fromInt |> String.padLeft 2 '0'
+            Time.toHour zone posix |> String.fromInt |> String.padLeft 2 '0'
 
         m =
-            Time.toMinute Time.utc posix |> String.fromInt |> String.padLeft 2 '0'
+            Time.toMinute zone posix |> String.fromInt |> String.padLeft 2 '0'
     in
     h ++ ":" ++ m
 

@@ -106,6 +106,7 @@ type alias Model =
     --
     , beginTime : Maybe Posix
     , currentTime : Posix
+    , timeZone : Time.Zone
     , elapsedTime : TypedTime
     , accumulatedTime : TypedTime
     , doUpdateElapsedTime : Bool
@@ -145,7 +146,10 @@ initialModel =
     , logFilterString = ""
     , appMode = UserValidation
     , visibilityOfLogList = Visible
+
+    --
     , currentTime = Time.millisToPosix 0
+    , timeZone = Time.utc
     , beginTime = Nothing
     , doUpdateElapsedTime = False
     , elapsedTime = TypedTime Seconds 0
@@ -160,7 +164,12 @@ initialModel =
 
 init : ( Model, Cmd FrontendMsg )
 init =
-    ( initialModel, sendToBackend timeoutInMs SentToBackendResult ClientJoin )
+    ( initialModel
+    , Cmd.batch
+        [ sendToBackend timeoutInMs SentToBackendResult ClientJoin
+        , Task.perform GetTimeZone Time.here
+        ]
+    )
 
 
 timeoutInMs =
@@ -360,6 +369,9 @@ update msg model =
             ( { model | changedLogName = str }, Cmd.none )
 
         -- TIMER
+        GetTimeZone zone ->
+            ( { model | timeZone = zone }, Cmd.none )
+
         TimeChange time ->
             ( { model
                 | currentTime = time
@@ -784,11 +796,11 @@ viewLog model =
                           , width = px 80
 
                           --, view = \k event -> el [ Font.size 12 ] (text <| dateStringOfDateTimeString <| (\(NaiveDateTime str) -> str) <| event.insertedAt)
-                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.humanDateStringFromPosix <| event.insertedAt)
+                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.humanDateStringFromPosix model.timeZone <| event.insertedAt)
                           }
                         , { header = el [ Font.bold ] (text "Time")
                           , width = px 80
-                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.naiveTimeStringFromPosix <| event.insertedAt)
+                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.naiveTimeStringFromPosix model.timeZone <| event.insertedAt)
                           }
                         , { header = el [ Font.bold ] (text "Duration")
                           , width = px 40
