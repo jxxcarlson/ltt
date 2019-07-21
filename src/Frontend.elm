@@ -233,7 +233,16 @@ update msg model =
 
         -- UI
         SetAppMode mode ->
-            ( { model | appMode = mode }, Cmd.none )
+            case model.maybeCurrentEvent of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just event ->
+                    let
+                        dur =
+                            TypedTime.timeAsStringWithUnit Seconds event.duration
+                    in
+                    ( { model | appMode = mode, changedEventDurationString = dur }, Cmd.none )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
@@ -259,7 +268,11 @@ update msg model =
             ( { model | changedEventDurationString = str }, Cmd.none )
 
         ChangeDuration log event ->
-            ( model, Cmd.none )
+            let
+                r =
+                    changeEventUsingString model.currentUser "" model.changedEventDurationString event log model.logs
+            in
+            ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
         GotLogFilter str ->
             ( { model | logFilterString = str }, Cmd.none )
@@ -1333,6 +1346,31 @@ addEvent maybeUser duration currentTime log logList =
     let
         newLog_ =
             Log.insertEvent "" duration currentTime log
+
+        newLogs =
+            Log.replaceLog newLog_ logList
+
+        cmd =
+            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)
+    in
+    { currentLog = newLog_, logList = newLogs, cmd = cmd }
+
+
+changeEventUsingString : Maybe User -> String -> String -> Event -> Log -> List Log -> UpdateLogRecord
+changeEventUsingString maybeUser note eventDurationString event log logList =
+    case TypedTime.decodeHM eventDurationString of
+        Just duration ->
+            changeEvent maybeUser note (TypedTime.convertFromSecondsWithUnit Seconds duration) event log logList
+
+        Nothing ->
+            { currentLog = log, logList = logList, cmd = Cmd.none }
+
+
+changeEvent : Maybe User -> String -> TypedTime -> Event -> Log -> List Log -> UpdateLogRecord
+changeEvent maybeUser note duration event log logList =
+    let
+        newLog_ =
+            Log.updateEvent "" duration event log
 
         newLogs =
             Log.replaceLog newLog_ logList

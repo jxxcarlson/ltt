@@ -11,6 +11,7 @@ module Log exposing
     , groupingFilter
     , insertEvent
     , replaceLog
+    , updateEvent
     )
 
 import DateTime exposing (NaiveDateTime(..))
@@ -301,3 +302,18 @@ insertEvent note duration currentTime log =
             }
     in
     { log | data = newEvent :: log.data, counter = log.counter + 1 }
+
+
+updateEvent : String -> TypedTime -> Event -> Log -> Log
+updateEvent note duration event log =
+    let
+        newEvent =
+            { event | note = note, duration = duration }
+
+        data =
+            log.data
+
+        newData =
+            LE.setIf (\e -> e.id == event.id) event data
+    in
+    { log | data = newData }
