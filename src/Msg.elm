@@ -41,34 +41,39 @@ type BackendMsg
 
 type FrontendMsg
     = NoOpFrontendMsg
+      -- App
     | SetAppMode AppMode
     | SendUserLogs User
     | SentToBackendResult (Result WsError ())
-      --
+      -- User
     | GotUserName String
     | GotPassword String
     | SignIn
     | SignUp
     | SignOut
-      --
+      -- Url
     | ChangeUrl Url
     | ClickLink UrlRequest
-    | GetEvents Int
-    | SetCurrentEvent Event
-    | SetGroupFilter EventGrouping
-    | SetUnits Unit
     | ToggleLogs
-      --
+      -- Time
+    | SetUnits Unit
     | TimeChange Posix
     | TC TimerCommand
     | UpdateElapsedTime Float
     | GotValueString String
+      -- Event
+    | GotChangedEventDuration String
+    | ChangeDuration Log Event
     | MakeEvent
     | DeleteEvent Int Int
+    | GotEventDateFilter String
+    | GetEvents Int
+    | SetCurrentEvent Event
+    | SetGroupFilter EventGrouping
+      -- Log
     | MakeNewLog
     | GotNewLogName String
     | GotLogFilter String
-    | GotEventDateFilter String
     | GotChangedLogName String
     | ChangeLogName
 

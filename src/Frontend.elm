@@ -86,24 +86,28 @@ type alias Model =
     , message : String
     , visibilityOfLogList : Visibility
 
-    --
+    -- USER
     , currentUser : Maybe User
     , username : String
     , password : String
     , email : String
 
-    --
+    -- EVENTS
+    , changedEventDurationString : String
     , eventDurationString : String
     , eventDateFilterString : String
+    , maybeCurrentEvent : Maybe Event
+    , filterState : EventGrouping
+    , dateFilter : DateFilter
+
+    -- LOGS
     , logs : List Log
     , newLogName : String
     , changedLogName : String
     , maybeCurrentLog : Maybe Log
-    , maybeCurrentEvent : Maybe Event
     , logFilterString : String
-    , filterState : EventGrouping
 
-    --
+    -- TIMER
     , beginTime : Maybe Posix
     , currentTime : Posix
     , elapsedTime : TypedTime
@@ -112,7 +116,6 @@ type alias Model =
     , timerState : TimerState
 
     --
-    , dateFilter : DateFilter
     , timeZoneOffset : Int
     , outputUnit : Unit
     }
@@ -128,13 +131,14 @@ initialModel =
     { input = "App started"
     , message = "App started"
 
-    --
+    -- USER
     , currentUser = Nothing
     , username = ""
     , password = ""
     , email = ""
 
-    --
+    -- EVENT
+    , changedEventDurationString = ""
     , eventDurationString = ""
     , eventDateFilterString = ""
     , logs = []
@@ -250,7 +254,13 @@ update msg model =
         SignOut ->
             ( initialModel, Cmd.none )
 
-        -- EVENTS
+        -- EVENT
+        GotChangedEventDuration str ->
+            ( { model | changedEventDurationString = str }, Cmd.none )
+
+        ChangeDuration log event ->
+            ( model, Cmd.none )
+
         GotLogFilter str ->
             ( { model | logFilterString = str }, Cmd.none )
 
@@ -341,7 +351,6 @@ update msg model =
                     )
 
         ChangeLogName ->
-            -- ##
             case model.maybeCurrentLog of
                 Nothing ->
                     ( model, Cmd.none )
@@ -597,9 +606,34 @@ logEventPanel model =
             Element.none
 
         Just evt ->
-            column [ width (px 300), height (px 450), padding 12, Border.width 1 ]
+            column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
                 [ deleteEventButton model evt
+                , column [ spacing 12 ]
+                    [ inputChangeEventDuration model
+                    , changeDurationButton model
+                    ]
                 ]
+
+
+changeDurationButton model =
+    case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
+        ( Just log, Just event ) ->
+            Input.button Style.button
+                { onPress = Just (ChangeDuration log event)
+                , label = Element.text "Change duration"
+                }
+
+        _ ->
+            Element.none
+
+
+inputChangeEventDuration model =
+    Input.text (Style.inputStyle 60)
+        { onChange = GotChangedEventDuration
+        , text = model.changedEventDurationString
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Duration: ")
+        }
 
 
 deleteEventButton model event =
