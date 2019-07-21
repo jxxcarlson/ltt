@@ -776,7 +776,7 @@ viewLog model =
                 , indexedTable [ spacing 4, Font.size 12 ]
                     { data = events
                     , columns =
-                        [ { header = el [ Font.bold ] (text "idx")
+                        [ { header = el [ Font.bold ] (text <| idLabel model)
                           , width = px (indexWidth model.appMode)
                           , view = indexButton model
                           }
@@ -784,7 +784,7 @@ viewLog model =
                           , width = px 80
 
                           --, view = \k event -> el [ Font.size 12 ] (text <| dateStringOfDateTimeString <| (\(NaiveDateTime str) -> str) <| event.insertedAt)
-                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.naiveDateStringFromPosix <| event.insertedAt)
+                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.humanDateStringFromPosix <| event.insertedAt)
                           }
                         , { header = el [ Font.bold ] (text "Time")
                           , width = px 80
@@ -801,6 +801,16 @@ viewLog model =
                     , el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Total: " ++ TypedTime.timeAsStringWithUnit Minutes eventSum_)
                     ]
                 ]
+
+
+idLabel : Model -> String
+idLabel model =
+    case model.appMode of
+        Editing ->
+            "id"
+
+        _ ->
+            "idx"
 
 
 

@@ -1,6 +1,7 @@
 module DateTime exposing
     ( NaiveDateTime(..)
     , dateStringOfDateTimeString
+    , humanDateStringFromPosix
     , isoStringFromNaiveDateTime
     , julianDayNumber
     , naiveDateStringFromPosix
@@ -84,12 +85,27 @@ naiveDateStringFromPosix posix =
             Time.toYear Time.utc posix |> String.fromInt
 
         m =
-            Time.toMonth Time.utc posix |> monthToString
+            Time.toMonth Time.utc posix |> monthToStringAsNumber
 
         d =
             Time.toDay Time.utc posix |> String.fromInt |> String.padLeft 2 '0'
     in
     y ++ "-" ++ m ++ "-" ++ d
+
+
+humanDateStringFromPosix : Posix -> String
+humanDateStringFromPosix posix =
+    let
+        y =
+            Time.toYear Time.utc posix |> String.fromInt
+
+        m =
+            Time.toMonth Time.utc posix |> monthToString
+
+        d =
+            Time.toDay Time.utc posix |> String.fromInt |> String.padLeft 2 '0'
+    in
+    d ++ " " ++ m ++ " " ++ y
 
 
 naiveTimeStringFromPosix : Posix -> String
@@ -109,8 +125,8 @@ naiveDateTimeFromPosix posix =
     NaiveDateTime (naiveDateStringFromPosix posix)
 
 
-monthToString : Time.Month -> String
-monthToString m =
+monthToStringAsNumber : Time.Month -> String
+monthToStringAsNumber m =
     case m of
         Time.Jan ->
             "01"
@@ -147,6 +163,46 @@ monthToString m =
 
         Time.Dec ->
             "12"
+
+
+monthToString : Time.Month -> String
+monthToString m =
+    case m of
+        Time.Jan ->
+            "Jan"
+
+        Time.Feb ->
+            "Feb"
+
+        Time.Mar ->
+            "Mar"
+
+        Time.Apr ->
+            "Apr"
+
+        Time.May ->
+            "May"
+
+        Time.Jun ->
+            "Jun"
+
+        Time.Jul ->
+            "Jul"
+
+        Time.Aug ->
+            "Aug"
+
+        Time.Sep ->
+            "Sep"
+
+        Time.Oct ->
+            "Oct"
+
+        Time.Nov ->
+            "Nov"
+
+        Time.Dec ->
+            "Dec"
 
 
 timeStringOfDateTimeString : String -> String
