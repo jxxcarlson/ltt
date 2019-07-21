@@ -7,6 +7,7 @@ module Style exposing
     , button
     , buttonWithWidth
     , charcoal
+    , dangerousButton
     , darkBlue
     , darkRed
     , footer
@@ -93,6 +94,11 @@ buttonWithWidth width_ =
 button : List (Element.Attr () msg)
 button =
     [ Background.color black, Font.color white, Element.paddingXY 10 6 ] ++ basicButtonsStyle
+
+
+dangerousButton : List (Element.Attr () msg)
+dangerousButton =
+    [ Background.color darkRed, Font.color white, Element.paddingXY 10 6 ] ++ basicButtonsStyle
 
 
 headerButton : List (Element.Attr () msg)

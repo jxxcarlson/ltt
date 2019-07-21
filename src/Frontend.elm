@@ -621,11 +621,12 @@ logEventPanel model =
 
         Just evt ->
             column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
-                [ deleteEventButton model evt
+                [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
                 , column [ spacing 12 ]
                     [ inputChangeEventDuration model
                     , changeDurationButton model
                     ]
+                , deleteEventButton model evt
                 ]
 
 
@@ -656,9 +657,9 @@ deleteEventButton model event =
             Element.none
 
         Just log ->
-            Input.button Style.button
+            Input.button Style.dangerousButton
                 { onPress = Just (DeleteEvent log.id event.id)
-                , label = Element.text <| "Remove event " ++ String.fromInt event.id
+                , label = Element.text <| "Remove event"
                 }
 
 
