@@ -522,7 +522,7 @@ adminStatus model =
                     Element.none
 
                 True ->
-                    el [] (text "Admin")
+                    el [ Font.size 12 ] (text "Admin")
 
 
 inputUserName model =
