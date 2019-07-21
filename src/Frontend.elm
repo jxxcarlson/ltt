@@ -1202,7 +1202,7 @@ adminView_ model user =
                   }
                 , { header = el [ Font.bold ] (text "Username")
                   , width = px 80
-                  , view = \k user_ -> el [ Font.size 12 ] (text user.username)
+                  , view = \k user_ -> el [ Font.size 12 ] (text user_.username)
                   }
                 ]
             }

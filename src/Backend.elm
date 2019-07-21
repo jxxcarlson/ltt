@@ -1,4 +1,4 @@
-module Backend exposing (Model, app)
+module Backend exposing (Model, app, userList)
 
 import Dict exposing (Dict)
 import Frontend
@@ -55,8 +55,6 @@ update msg model =
         SentToFrontendResult clientId result ->
             case result of
                 Ok () ->
-                    -- Message was delivered successfully! We don't do anything
-                    -- with this info, but other apps might.
                     ( model, Cmd.none )
 
                 Err _ ->
