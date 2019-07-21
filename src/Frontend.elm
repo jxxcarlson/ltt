@@ -649,8 +649,18 @@ header model =
         , showIf (model.currentUser /= Nothing) (loggingModeButton model)
         , showIf (model.currentUser /= Nothing) (editingModeButton model)
         , showIf (model.currentUser /= Nothing) (toggleLogsButton model)
-        , el [ centerX, Font.size 18, Font.color Style.white ] (text "Time Log")
+        , el [ centerX, Font.size 18, Font.color Style.white ] (text <| "Time Log" ++ currentUserName model)
         ]
+
+
+currentUserName : Model -> String
+currentUserName model =
+    case model.currentUser of
+        Nothing ->
+            ""
+
+        Just user ->
+            " for " ++ user.username
 
 
 toggleLogsButton : Model -> Element FrontendMsg
