@@ -5,10 +5,11 @@ import Frontend
 import Lamdera.Backend
 import Lamdera.Types exposing (..)
 import Log exposing (Log)
+import Maybe.Extra
 import Msg exposing (..)
 import Set exposing (Set)
 import TestData exposing (passwordDict, userDict)
-import User exposing (PasswordDict, UserDict, UserInfo, Username)
+import User exposing (PasswordDict, User, UserDict, UserInfo, Username)
 import UserLog
 
 
@@ -68,10 +69,13 @@ updateFromFrontend clientId msg model =
         NoOpToBackend ->
             ( model, Cmd.none )
 
+        RequestUsers ->
+            ( model, sendToFrontend clientId (SendUserList (userList model.userDict)) )
+
         SendSignInInfo username password ->
             case User.validateUser model.passwordDict username password of
                 True ->
-                    ( model, sendToFrontend clientId <| SendValidatedUser (User.fromDict username model.userDict) )
+                    ( model, sendToFrontend clientId <| SendValidatedUser (User.fromDict model.userDict username) )
 
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
@@ -80,7 +84,7 @@ updateFromFrontend clientId msg model =
             case User.add username password email ( model.passwordDict, model.userDict ) of
                 Ok ( newPasswordDict, newUserDict ) ->
                     ( { model | userDict = newUserDict, passwordDict = newPasswordDict }
-                    , sendToFrontend clientId <| SendValidatedUser (User.fromDict username model.userDict)
+                    , sendToFrontend clientId <| SendValidatedUser (User.fromDict model.userDict username)
                     )
 
                 Err str ->
@@ -149,3 +153,9 @@ sendToFrontend clientId msg =
 --
 -- HELPERS
 --
+
+
+userList : UserDict Log -> List User
+userList userDict =
+    List.map (User.fromDict userDict) (Dict.keys userDict)
+        |> Maybe.Extra.values

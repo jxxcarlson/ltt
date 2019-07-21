@@ -20,6 +20,7 @@ type ToBackend
     = NoOpToBackend
     | ClientJoin
     | RequestLogs (Maybe User)
+    | RequestUsers
     | SendSignInInfo String String
     | SendSignUpInfo String String String
     | SendLogToBackend (Maybe User) Log
@@ -32,6 +33,7 @@ type ToFrontend
     = NoOpToFrontend
     | SendLogsToFrontend (List Log)
     | SendValidatedUser (Maybe User)
+    | SendUserList (List User)
 
 
 type BackendMsg
@@ -41,6 +43,8 @@ type BackendMsg
 
 type FrontendMsg
     = NoOpFrontendMsg
+      -- Admin
+    | SendUsers
       -- App
     | SetAppMode AppMode
     | SendUserLogs User
@@ -90,3 +94,4 @@ type AppMode
     = Logging
     | Editing
     | UserValidation
+    | Admin

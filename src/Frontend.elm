@@ -91,6 +91,7 @@ type alias Model =
     , username : String
     , password : String
     , email : String
+    , userList : List User
 
     -- EVENTS
     , changedEventDurationString : String
@@ -136,6 +137,7 @@ initialModel =
     , username = ""
     , password = ""
     , email = ""
+    , userList = []
 
     -- EVENT
     , changedEventDurationString = ""
@@ -195,6 +197,9 @@ updateFromBackend msg model =
         SendLogsToFrontend newLogList ->
             ( { model | logs = newLogList }, Cmd.none )
 
+        SendUserList userList ->
+            ( { model | userList = userList }, Cmd.none )
+
         SendValidatedUser currentUser ->
             case currentUser of
                 Nothing ->
@@ -212,6 +217,16 @@ update msg model =
         NoOpFrontendMsg ->
             ( model, Cmd.none )
 
+        -- ADMIN
+        SendUsers ->
+            case currentUserIsAdmin model of
+                False ->
+                    ( model, Cmd.none )
+
+                True ->
+                    ( model, sendToBackend timeoutInMs SentToBackendResult RequestUsers )
+
+        -- sendToBackend timeoutInMs SentToBackendResult (SendUserList model.username model.password) )
         -- BACKEND
         SendUserLogs userId ->
             ( model, Cmd.none )
@@ -233,17 +248,16 @@ update msg model =
 
         -- UI
         SetAppMode mode ->
-            -- case model.maybeCurrentEvent of
-            --     Nothing ->
-            --         ( model, Cmd.none )
-            --
-            --     Just event ->
-            --         let
-            --             dur =
-            --                 TypedTime.timeAsStringWithUnit Seconds event.duration
-            --         in
-            --         ( { model | appMode = mode, changedEventDurationString = dur }, Cmd.none )
-            ( { model | appMode = mode }, Cmd.none )
+            let
+                cmd =
+                    case mode of
+                        Admin ->
+                            sendToBackend timeoutInMs SentToBackendResult RequestUsers
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | appMode = mode }, cmd )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
@@ -492,6 +506,9 @@ mainView model =
 
             Editing ->
                 editingView model
+
+            Admin ->
+                adminView model
         ]
 
 
@@ -694,12 +711,23 @@ header model =
         , Background.color Style.charcoal
         , spacing 12
         ]
-        [ userValidationModeButton model
+        [ showIf (currentUserIsAdmin model) (adminModeButton model)
+        , userValidationModeButton model
         , showIf (model.currentUser /= Nothing) (loggingModeButton model)
         , showIf (model.currentUser /= Nothing) (editingModeButton model)
         , showIf (model.currentUser /= Nothing) (toggleLogsButton model)
         , el [ centerX, Font.size 18, Font.color Style.white ] (text <| "Time Log" ++ currentUserName model)
         ]
+
+
+currentUserIsAdmin : Model -> Bool
+currentUserIsAdmin model =
+    case model.currentUser of
+        Nothing ->
+            False
+
+        Just user ->
+            user.admin
 
 
 currentUserName : Model -> String
@@ -729,6 +757,14 @@ userValidationModeButton model =
     Input.button ((Style.select <| model.appMode == UserValidation) Style.selectedHeaderButton Style.headerButton)
         { onPress = Just (SetAppMode UserValidation)
         , label = Element.text "User"
+        }
+
+
+adminModeButton : Model -> Element FrontendMsg
+adminModeButton model =
+    Input.button ((Style.select <| model.appMode == Admin) Style.selectedHeaderButton Style.headerButton)
+        { onPress = Just (SetAppMode Admin)
+        , label = Element.text "Admin"
         }
 
 
@@ -1133,6 +1169,48 @@ newLog model =
 
 
 --
+-- ADMIN VIEW
+--
+
+
+adminView : Model -> Element FrontendMsg
+adminView model =
+    case model.currentUser of
+        Nothing ->
+            Element.none
+
+        Just user ->
+            case user.admin of
+                False ->
+                    Element.none
+
+                True ->
+                    adminView_ model user
+
+
+adminView_ : Model -> User -> Element FrontendMsg
+adminView_ model user =
+    column Style.mainColumnX
+        [ el [] (text <| "Admin: " ++ user.username)
+        , indexedTable
+            [ spacing 4, Font.size 12 ]
+            { data = model.userList
+            , columns =
+                [ { header = el [ Font.bold ] (text "k")
+                  , width = px 40
+                  , view = \k user_ -> el [ Font.size 12 ] (text <| String.fromInt <| k + 1)
+                  }
+                , { header = el [ Font.bold ] (text "Username")
+                  , width = px 80
+                  , view = \k user_ -> el [ Font.size 12 ] (text user.username)
+                  }
+                ]
+            }
+        ]
+
+
+
+--
 -- GRAPH HELPERS
 --
 
@@ -1295,7 +1373,7 @@ indexWidth appMode =
         Editing ->
             60
 
-        UserValidation ->
+        _ ->
             60
 
 
@@ -1308,7 +1386,7 @@ indexButton model k event =
         Editing ->
             setCurrentEventButton model event k
 
-        UserValidation ->
+        _ ->
             Element.none
 
 
