@@ -233,16 +233,17 @@ update msg model =
 
         -- UI
         SetAppMode mode ->
-            case model.maybeCurrentEvent of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just event ->
-                    let
-                        dur =
-                            TypedTime.timeAsStringWithUnit Seconds event.duration
-                    in
-                    ( { model | appMode = mode, changedEventDurationString = dur }, Cmd.none )
+            -- case model.maybeCurrentEvent of
+            --     Nothing ->
+            --         ( model, Cmd.none )
+            --
+            --     Just event ->
+            --         let
+            --             dur =
+            --                 TypedTime.timeAsStringWithUnit Seconds event.duration
+            --         in
+            --         ( { model | appMode = mode, changedEventDurationString = dur }, Cmd.none )
+            ( { model | appMode = mode }, Cmd.none )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
