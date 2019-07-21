@@ -310,10 +310,7 @@ updateEvent note duration event log =
         newEvent =
             { event | note = note, duration = duration }
 
-        data =
-            log.data
-
         newData =
-            LE.setIf (\e -> e.id == event.id) event data
+            LE.setIf (\e -> e.id == event.id) newEvent log.data
     in
     { log | data = newData }
