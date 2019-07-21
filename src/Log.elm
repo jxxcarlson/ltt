@@ -116,27 +116,45 @@ groupingFilter eventGrouping eventList =
 
 {-| Temporary (bad) fix
 -}
-eventsByDay : List Event -> List Event
-eventsByDay list =
-    list
 
 
 
 -- eventsByDay : List Event -> List Event
 -- eventsByDay list =
---     let
---         referenceDT =
---             Time.millisToPosix 0
---     in
 --     list
---         --|> List.map (\r -> offsetTimeZone timeZoneOffset r)
---         |> timeSeries
---         |> timeSeriesRD
---         |> List.sortBy Tuple.first
---         |> fillGaps ( referenceDT, 0 )
---         |> group
---         |> List.map sumList2
---         |> List.reverse
+
+
+eventsByDay : List Event -> List Event
+eventsByDay list =
+    let
+        referenceDT =
+            Time.millisToPosix 0
+    in
+    list
+        --|> List.map (\r -> offsetTimeZone timeZoneOffset r)
+        |> timeSeries
+        |> timeSeriesRD
+        |> List.sortBy Tuple.first
+        |> fillGaps ( referenceDT, 0 )
+        |> group
+        |> List.map sumList2
+        |> List.reverse
+
+
+timeSeriesRD : List ( Posix, Float ) -> List ( Int, ( Posix, Float ) )
+timeSeriesRD listOfPairs =
+    List.map augmentPair listOfPairs
+
+
+augmentPair : ( Posix, Float ) -> ( Int, ( Posix, Float ) )
+augmentPair ( p, f ) =
+    ( DateTime.rataDieFromPosix p, ( p, f ) )
+
+
+
+-- https://www.revolvy.com/page/Rata-Die
+-- https://www.revolvy.com/page/Julian-day?cr=1
+-- RD = floor( JD − 1 721 424.5 )
 -- correctTimeZone : Int -> List Event -> List Event
 -- correctTimeZone timeZoneOffset list =
 --     list
