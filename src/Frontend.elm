@@ -96,7 +96,8 @@ type alias Model =
     -- EVENTS
     , changedEventDurationString : String
     , eventDurationString : String
-    , eventDateFilterString : String
+    , eventDateAfterFilterString : String
+    , eventDateBeforeFilterString : String
     , maybeCurrentEvent : Maybe Event
     , filterState : EventGrouping
     , dateFilter : DateFilter
@@ -143,7 +144,8 @@ initialModel =
     -- EVENT
     , changedEventDurationString = ""
     , eventDurationString = ""
-    , eventDateFilterString = ""
+    , eventDateAfterFilterString = ""
+    , eventDateBeforeFilterString = ""
     , logs = []
     , newLogName = ""
     , changedLogName = ""
@@ -323,18 +325,31 @@ update msg model =
         GotLogFilter str ->
             ( { model | logFilterString = str }, Cmd.none )
 
-        GotEventDateFilter str ->
+        GotEventDateAfterFilter str ->
             case String.toInt str of
                 Nothing ->
-                    ( { model | dateFilter = NoDateFilter, eventDateFilterString = str }, Cmd.none )
+                    ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
 
                 Just k ->
                     case k <= 0 of
                         True ->
-                            ( { model | dateFilter = NoDateFilter, eventDateFilterString = str }, Cmd.none )
+                            ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
 
                         False ->
-                            ( { model | dateFilter = FilterByLast k, eventDateFilterString = str }, Cmd.none )
+                            ( { model | dateFilter = FilterByLast k, eventDateAfterFilterString = str }, Cmd.none )
+
+        GotEventDateBeforeFilter str ->
+            case String.toInt str of
+                Nothing ->
+                    ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
+
+                Just k ->
+                    case k <= 0 of
+                        True ->
+                            ( { model | dateFilter = NoDateFilter, eventDateBeforeFilterString = str }, Cmd.none )
+
+                        False ->
+                            ( { model | dateFilter = FilterByLast k, eventDateBeforeFilterString = str }, Cmd.none )
 
         GotValueString str ->
             ( { model | eventDurationString = str }, Cmd.none )
@@ -1342,8 +1357,8 @@ filterPanel model =
     row [ spacing 8 ]
         [ el [ Font.bold ] (text "Filter:")
         , inputLogNameFilter model
-        , el [ Font.bold ] (text "Since:")
-        , inputEventDateFilter model
+        , el [ Font.bold ] (text "After (days):")
+        , inputEventDateAfterFilter model
 
         --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
@@ -1358,10 +1373,19 @@ inputLogNameFilter model =
         }
 
 
-inputEventDateFilter model =
+inputEventDateAfterFilter model =
     Input.text (Style.inputStyle 50)
-        { onChange = GotEventDateFilter
-        , text = model.eventDateFilterString
+        { onChange = GotEventDateAfterFilter
+        , text = model.eventDateAfterFilterString
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
+        }
+
+
+inputEventDateBeforeFilter model =
+    Input.text (Style.inputStyle 50)
+        { onChange = GotEventDateBeforeFilter
+        , text = model.eventDateBeforeFilterString
         , placeholder = Nothing
         , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
         }

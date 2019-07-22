@@ -72,7 +72,8 @@ type FrontendMsg
     | ChangeDuration Log Event
     | MakeEvent
     | DeleteEvent Int Int
-    | GotEventDateFilter String
+    | GotEventDateAfterFilter String
+    | GotEventDateBeforeFilter String
     | GetEvents Int
     | SetCurrentEvent Event
     | SetGroupFilter EventGrouping
