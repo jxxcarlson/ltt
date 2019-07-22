@@ -3,7 +3,7 @@ module Log exposing
     , Event
     , EventGrouping(..)
     , Log
-    , dateFilter
+    , bigDateFilter
     , deleteEvent
     , eventSum
     , eventsByDay
@@ -45,12 +45,40 @@ type EventGrouping
 
 
 type DateFilter
-    = NoDateFilter
-    | FilterByLast Int
+    = IdentityDateFilter
+    | DateSuffixFilter Int
+    | DatePrefixFilter Int
 
 
 type Duration
     = Duration Float
+
+
+bigDateFilter : Posix -> String -> String -> List Event -> List Event
+bigDateFilter today prefixParameterString suffixParameterString eventList =
+    eventList
+        |> prefixFilter today prefixParameterString
+        |> suffixFilter today suffixParameterString
+
+
+suffixFilter : Posix -> String -> List Event -> List Event
+suffixFilter today suffixParameterString eventList =
+    case suffixParameterString |> String.toInt of
+        Nothing ->
+            eventList
+
+        Just k ->
+            dateSuffixFilter today k eventList
+
+
+prefixFilter : Posix -> String -> List Event -> List Event
+prefixFilter today prefixParameterString eventList =
+    case prefixParameterString |> String.toInt of
+        Nothing ->
+            eventList
+
+        Just k ->
+            datePrefixFilter today k eventList
 
 
 filter : String -> List Log -> List Log
@@ -58,18 +86,22 @@ filter filterString logs =
     List.filter (\log -> String.contains (String.toLower filterString) (String.toLower log.name)) logs
 
 
-dateFilter : Posix -> DateFilter -> List Event -> List Event
-dateFilter today dateFilter_ eventList =
-    case dateFilter_ of
-        NoDateFilter ->
-            eventList
+dateSuffixFilter : Posix -> Int -> List Event -> List Event
+dateSuffixFilter today k eventList =
+    let
+        kDaysAgo =
+            shiftPosix (-86400.0 * toFloat k) today
+    in
+    List.filter (\event -> posixInterval event.insertedAt kDaysAgo > 0) eventList
 
-        FilterByLast k ->
-            let
-                aWhileAgo =
-                    shiftPosix (-86400.0 * toFloat k) today
-            in
-            List.filter (\event -> posixInterval event.insertedAt aWhileAgo > 0) eventList
+
+datePrefixFilter : Posix -> Int -> List Event -> List Event
+datePrefixFilter today k eventList =
+    let
+        kDaysAgo =
+            shiftPosix (-86400.0 * toFloat k) today
+    in
+    List.filter (\event -> posixInterval kDaysAgo event.insertedAt > 0) eventList
 
 
 shiftPosix : Float -> Posix -> Posix
@@ -79,7 +111,7 @@ shiftPosix t p =
         |> Time.millisToPosix
 
 
-{-| Intervale betwen two Posix times in Seconds
+{-| Interval betwen two Posix times in Seconds
 -}
 posixInterval : Posix -> Posix -> Float
 posixInterval p_ q_ =

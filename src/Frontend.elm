@@ -96,12 +96,12 @@ type alias Model =
     -- EVENTS
     , changedEventDurationString : String
     , eventDurationString : String
-    , eventDateAfterFilterString : String
-    , eventDateBeforeFilterString : String
+    , eventCameBeforeString : String
+    , eventCameAfterString : String
     , maybeCurrentEvent : Maybe Event
     , filterState : EventGrouping
-    , dateFilter : DateFilter
 
+    --, dateFilters : List DateFilter
     -- LOGS
     , logs : List Log
     , newLogName : String
@@ -144,8 +144,8 @@ initialModel =
     -- EVENT
     , changedEventDurationString = ""
     , eventDurationString = ""
-    , eventDateAfterFilterString = ""
-    , eventDateBeforeFilterString = ""
+    , eventCameBeforeString = ""
+    , eventCameAfterString = ""
     , logs = []
     , newLogName = ""
     , changedLogName = ""
@@ -158,7 +158,8 @@ initialModel =
     , doUpdateElapsedTime = False
     , elapsedTime = TypedTime Seconds 0
     , accumulatedTime = TypedTime Seconds 0
-    , dateFilter = NoDateFilter
+
+    --, dateFilter = []
     , timeZoneOffset = 5
     , timerState = TSInitial
     , filterState = NoGrouping
@@ -326,30 +327,10 @@ update msg model =
             ( { model | logFilterString = str }, Cmd.none )
 
         GotEventDateAfterFilter str ->
-            case String.toInt str of
-                Nothing ->
-                    ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
-
-                Just k ->
-                    case k <= 0 of
-                        True ->
-                            ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
-
-                        False ->
-                            ( { model | dateFilter = FilterByLast k, eventDateAfterFilterString = str }, Cmd.none )
+            ( { model | eventCameAfterString = str }, Cmd.none )
 
         GotEventDateBeforeFilter str ->
-            case String.toInt str of
-                Nothing ->
-                    ( { model | dateFilter = NoDateFilter, eventDateAfterFilterString = str }, Cmd.none )
-
-                Just k ->
-                    case k <= 0 of
-                        True ->
-                            ( { model | dateFilter = NoDateFilter, eventDateBeforeFilterString = str }, Cmd.none )
-
-                        False ->
-                            ( { model | dateFilter = FilterByLast k, eventDateBeforeFilterString = str }, Cmd.none )
+            ( { model | eventCameBeforeString = str }, Cmd.none )
 
         GotValueString str ->
             ( { model | eventDurationString = str }, Cmd.none )
@@ -905,7 +886,7 @@ viewLog model =
                     model.currentTime
 
                 events2 =
-                    Log.dateFilter today model.dateFilter currentLog.data
+                    Log.bigDateFilter today model.eventCameBeforeString model.eventCameAfterString currentLog.data
 
                 -- events : List Event
                 -- events =
@@ -984,11 +965,8 @@ eventPanel model =
 
         Just currentLog ->
             let
-                today =
-                    DateTime.naiveDateStringFromPosix model.currentTime
-
                 events2 =
-                    Log.dateFilter model.currentTime model.dateFilter currentLog.data
+                    Log.bigDateFilter model.currentTime model.eventCameBeforeString model.eventCameAfterString currentLog.data
 
                 events =
                     case model.filterState of
@@ -1357,8 +1335,10 @@ filterPanel model =
     row [ spacing 8 ]
         [ el [ Font.bold ] (text "Filter:")
         , inputLogNameFilter model
-        , el [ Font.bold ] (text "After (days):")
-        , inputEventDateAfterFilter model
+        , el [ Font.bold, Font.size 14 ] (text "After (days ago):")
+        , inputEventCameAfterFilter model
+        , el [ Font.bold, Font.size 14 ] (text "Before (days ago):")
+        , inputEventCameBeforeFilter model
 
         --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
@@ -1373,19 +1353,19 @@ inputLogNameFilter model =
         }
 
 
-inputEventDateAfterFilter model =
+inputEventCameBeforeFilter model =
     Input.text (Style.inputStyle 50)
-        { onChange = GotEventDateAfterFilter
-        , text = model.eventDateAfterFilterString
+        { onChange = GotEventDateBeforeFilter
+        , text = model.eventCameBeforeString
         , placeholder = Nothing
         , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
         }
 
 
-inputEventDateBeforeFilter model =
+inputEventCameAfterFilter model =
     Input.text (Style.inputStyle 50)
-        { onChange = GotEventDateBeforeFilter
-        , text = model.eventDateBeforeFilterString
+        { onChange = GotEventDateAfterFilter
+        , text = model.eventCameAfterString
         , placeholder = Nothing
         , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "")
         }
