@@ -82,7 +82,7 @@ updateFromFrontend clientId msg model =
             case User.add username password email ( model.passwordDict, model.userDict ) of
                 Ok ( newPasswordDict, newUserDict ) ->
                     ( { model | userDict = newUserDict, passwordDict = newPasswordDict }
-                    , sendToFrontend clientId <| SendValidatedUser (User.fromDict model.userDict username)
+                    , sendToFrontend clientId <| SendValidatedUser (User.fromDict newUserDict username)
                     )
 
                 Err str ->
