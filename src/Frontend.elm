@@ -287,7 +287,16 @@ update msg model =
             ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
 
         SignUp ->
-            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password model.email) )
+            let
+                signUpErrors =
+                    User.validateSignUpInfo model.username model.password model.email
+            in
+            case List.length signUpErrors > 0 of
+                True ->
+                    ( { model | message = String.join ", " signUpErrors }, Cmd.none )
+
+                False ->
+                    ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password model.email) )
 
         SignOut ->
             ( initialModel, Cmd.none )

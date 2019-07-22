@@ -1,4 +1,4 @@
-module User exposing (Password, PasswordDict, User, UserDict, UserInfo, Username, add, fromDict, getData, validateUser)
+module User exposing (Password, PasswordDict, User, UserDict, UserInfo, Username, add, fromDict, getData, validateSignUpInfo, validateUser)
 
 import Dict exposing (Dict)
 
@@ -61,6 +61,41 @@ validateUser passwordDict username passWord =
 
         Just encryptedPassword ->
             validatePassword passWord encryptedPassword
+
+
+validateSignUpInfo : Username -> String -> String -> List String
+validateSignUpInfo username password email =
+    []
+        |> userNameLongEnough username
+        |> passwordLongEnough password
+        |> emailValid email
+
+
+userNameLongEnough username errorList =
+    case String.length username < 6 of
+        True ->
+            "Username must have at least six characters" :: errorList
+
+        False ->
+            errorList
+
+
+passwordLongEnough password errorList =
+    case String.length password < 6 of
+        True ->
+            "Password must have at least six characters" :: errorList
+
+        False ->
+            errorList
+
+
+emailValid email errorList =
+    case String.contains "@" email && String.length email > 3 of
+        False ->
+            "Email is not valid" :: errorList
+
+        True ->
+            errorList
 
 
 add : String -> String -> String -> ( PasswordDict, UserDict a ) -> Result String ( PasswordDict, UserDict a )
