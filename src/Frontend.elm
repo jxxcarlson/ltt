@@ -558,6 +558,7 @@ noUserView model =
         , inputUserName model
         , inputPassword model
         , showIf (model.appMode == UserValidation SignUpState) (inputEmail model)
+        , showIf (model.appMode == UserValidation SignUpState) (el [ Font.size 12 ] (text "A real email address is only needed for password recovery in real production."))
         , row [ spacing 12, paddingXY 0 12 ]
             [ showIf (model.appMode == UserValidation SignInState) (signInButton model)
             , signUpButton model
