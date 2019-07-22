@@ -21,7 +21,7 @@ import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
 import Log exposing (DateFilter(..), Event, EventGrouping(..), Log)
-import Msg exposing (AppMode(..), BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..))
+import Msg exposing (AppMode(..), BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
 import Style
 import Task
 import TestData exposing (..)
@@ -130,7 +130,8 @@ type alias Model =
 
 initialModel =
     { input = "App started"
-    , message = "App started"
+    , message = "Please sign in"
+    , appMode = UserValidation SignInState
 
     -- USER
     , currentUser = Nothing
@@ -149,7 +150,6 @@ initialModel =
     , maybeCurrentLog = Nothing
     , maybeCurrentEvent = Nothing
     , logFilterString = ""
-    , appMode = UserValidation
     , visibilityOfLogList = Visible
     , currentTime = Time.millisToPosix 0
     , beginTime = Nothing
@@ -203,7 +203,7 @@ updateFromBackend msg model =
         SendValidatedUser currentUser ->
             case currentUser of
                 Nothing ->
-                    ( { model | currentUser = Nothing }, Cmd.none )
+                    ( { model | currentUser = Nothing, message = "Incorrect password/username" }, Cmd.none )
 
                 Just user ->
                     ( { model | currentUser = Just user, appMode = Logging }
@@ -256,8 +256,19 @@ update msg model =
 
                         _ ->
                             Cmd.none
+
+                message =
+                    case mode of
+                        UserValidation SignInState ->
+                            "Please sign in"
+
+                        UserValidation SignUpState ->
+                            "Please sign up"
+
+                        _ ->
+                            ""
             in
-            ( { model | appMode = mode }, cmd )
+            ( { model | appMode = mode, message = message }, cmd )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
@@ -268,6 +279,9 @@ update msg model =
 
         GotPassword str ->
             ( { model | password = str }, Cmd.none )
+
+        GotEmail str ->
+            ( { model | email = str }, Cmd.none )
 
         SignIn ->
             ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
@@ -498,7 +512,7 @@ mainView model =
     column []
         [ header model
         , case model.appMode of
-            UserValidation ->
+            UserValidation _ ->
                 userValidationView model
 
             Logging ->
@@ -534,10 +548,12 @@ noUserView model =
         [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome!")
         , inputUserName model
         , inputPassword model
+        , showIf (model.appMode == UserValidation SignUpState) (inputEmail model)
         , row [ spacing 12, paddingXY 0 12 ]
-            [ signInButton model
+            [ showIf (model.appMode == UserValidation SignInState) (signInButton model)
             , signUpButton model
             ]
+        , el [ Font.size 12 ] (text model.message)
         ]
 
 
@@ -574,6 +590,15 @@ inputUserName model =
         }
 
 
+inputEmail model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotEmail
+        , text = model.email
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Email")
+        }
+
+
 inputPassword model =
     Input.text (Style.inputStyle 200)
         { onChange = GotPassword
@@ -596,7 +621,13 @@ signInButton model =
 signUpButton : Model -> Element FrontendMsg
 signUpButton model =
     Input.button Style.headerButton
-        { onPress = Just SignUp
+        { onPress =
+            case model.appMode of
+                UserValidation SignUpState ->
+                    Just SignUp
+
+                _ ->
+                    Just (SetAppMode (UserValidation SignUpState))
         , label = Element.text "Sign Up"
         }
 
@@ -754,8 +785,8 @@ toggleLogsButton model =
 
 userValidationModeButton : Model -> Element FrontendMsg
 userValidationModeButton model =
-    Input.button ((Style.select <| model.appMode == UserValidation) Style.selectedHeaderButton Style.headerButton)
-        { onPress = Just (SetAppMode UserValidation)
+    Input.button ((Style.select <| model.appMode == UserValidation SignInState) Style.selectedHeaderButton Style.headerButton)
+        { onPress = Just (SetAppMode (UserValidation SignInState))
         , label = Element.text "User"
         }
 
@@ -1198,11 +1229,15 @@ adminView_ model user =
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
                   , width = px 40
-                  , view = \k user_ -> el [ Font.size 12 ] (text <| String.fromInt <| k + 1)
+                  , view = \k usr -> el [ Font.size 12 ] (text <| String.fromInt <| k + 1)
                   }
                 , { header = el [ Font.bold ] (text "Username")
                   , width = px 80
-                  , view = \k user_ -> el [ Font.size 12 ] (text user_.username)
+                  , view = \k usr -> el [ Font.size 12 ] (text usr.username)
+                  }
+                , { header = el [ Font.bold ] (text "Email")
+                  , width = px 80
+                  , view = \k usr -> el [ Font.size 12 ] (text usr.email)
                   }
                 ]
             }

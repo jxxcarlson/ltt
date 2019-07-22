@@ -5,6 +5,7 @@ module Msg exposing
     , TimerCommand(..)
     , ToBackend(..)
     , ToFrontend(..)
+    , ValidationState(..)
     )
 
 import Browser exposing (UrlRequest(..))
@@ -52,6 +53,7 @@ type FrontendMsg
       -- User
     | GotUserName String
     | GotPassword String
+    | GotEmail String
     | SignIn
     | SignUp
     | SignOut
@@ -93,5 +95,10 @@ type TimerCommand
 type AppMode
     = Logging
     | Editing
-    | UserValidation
+    | UserValidation ValidationState
     | Admin
+
+
+type ValidationState
+    = SignInState
+    | SignUpState
