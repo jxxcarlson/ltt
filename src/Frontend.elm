@@ -884,12 +884,12 @@ viewLog model =
                 events2 =
                     Log.dateFilter today model.dateFilter currentLog.data
 
-                eventSum_ =
-                    Log.eventSum events2
-
                 events : List Event
                 events =
                     Log.groupingFilter model.filterState events2
+
+                eventSum_ =
+                    Log.eventSum events
 
                 nEvents =
                     List.length events |> toFloat
