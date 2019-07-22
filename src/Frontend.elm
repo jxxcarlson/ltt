@@ -257,6 +257,14 @@ update msg model =
                         _ ->
                             Cmd.none
 
+                filterState =
+                    case mode of
+                        Editing ->
+                            NoGrouping
+
+                        _ ->
+                            model.filterState
+
                 message =
                     case mode of
                         UserValidation SignInState ->
@@ -268,7 +276,7 @@ update msg model =
                         _ ->
                             ""
             in
-            ( { model | appMode = mode, message = message }, cmd )
+            ( { model | appMode = mode, filterState = filterState, message = message }, cmd )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
