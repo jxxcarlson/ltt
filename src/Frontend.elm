@@ -884,9 +884,16 @@ viewLog model =
                 events2 =
                     Log.dateFilter today model.dateFilter currentLog.data
 
-                events : List Event
+                -- events : List Event
+                -- events =
+                --     Log.groupingFilter model.filterState events2
                 events =
-                    Log.groupingFilter model.filterState events2
+                    case model.filterState of
+                        NoGrouping ->
+                            events2
+
+                        GroupByDay ->
+                            Log.eventsByDay events2
 
                 eventSum_ =
                     Log.eventSum events
@@ -923,7 +930,8 @@ viewLog model =
                         ]
                     }
                 , row [ spacing 24, alignBottom, alignRight ]
-                    [ el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Average: " ++ TypedTime.timeAsStringWithUnit Minutes average)
+                    [ el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "N: " ++ String.fromInt (List.length events))
+                    , el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Average: " ++ TypedTime.timeAsStringWithUnit Minutes average)
                     , el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Total: " ++ TypedTime.timeAsStringWithUnit Minutes eventSum_)
                     ]
                 ]
