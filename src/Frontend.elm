@@ -90,6 +90,8 @@ type alias Model =
     , currentUser : Maybe User
     , username : String
     , password : String
+    , newPassword1 : String
+    , newPassword2 : String
     , email : String
     , userList : List User
 
@@ -138,6 +140,8 @@ initialModel =
     , currentUser = Nothing
     , username = ""
     , password = ""
+    , newPassword1 = ""
+    , newPassword2 = ""
     , email = ""
     , userList = []
 
@@ -196,6 +200,9 @@ updateFromBackend msg model =
     case msg of
         NoOpToFrontend ->
             ( model, Cmd.none )
+
+        SendMessage str ->
+            ( { model | message = str }, Cmd.none )
 
         SendLogsToFrontend newLogList ->
             ( { model | logs = newLogList }, Cmd.none )
@@ -308,6 +315,27 @@ update msg model =
 
         GotPassword str ->
             ( { model | password = str }, Cmd.none )
+
+        GotNewPassword1 str ->
+            ( { model | newPassword1 = str }, Cmd.none )
+
+        GotNewPassword2 str ->
+            ( { model | newPassword2 = str }, Cmd.none )
+
+        ChangePassword ->
+            case User.validateChangePassword model.newPassword1 model.newPassword2 of
+                [] ->
+                    case model.currentUser of
+                        Nothing ->
+                            ( { model | message = "No user signed in" }, Cmd.none )
+
+                        Just user ->
+                            ( { model | message = "OK" }
+                            , sendToBackend timeoutInMs SentToBackendResult (SendChangePasswordInfo user.username model.password model.newPassword1)
+                            )
+
+                errorList ->
+                    ( { model | message = String.join ", " errorList }, Cmd.none )
 
         GotEmail str ->
             ( { model | email = str }, Cmd.none )
@@ -594,8 +622,66 @@ signedInUserView model user =
     column Style.mainColumnX
         [ el [] (text <| "Signed in as " ++ user.username)
         , signOutButton model
+        , showIf (model.appMode == UserValidation ChangePasswordState) (passwordPanel model)
+        , changePasswordButton model
         , adminStatus model
         ]
+
+
+passwordPanel model =
+    column [ spacing 12, paddingXY 0 18 ]
+        [ inputCurrentPassword model
+        , inputNewPassword1 model
+        , inputNewPassword2 model
+        , el [ Font.size 12 ] (text model.message)
+        ]
+
+
+inputCurrentPassword model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotPassword
+        , text = model.password
+        , placeholder = Nothing
+
+        ---, show = False
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 110) ] (text "Old password: ")
+        }
+
+
+inputNewPassword1 model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotNewPassword1
+        , text = model.newPassword1
+        , placeholder = Nothing
+
+        ---, show = False
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 110) ] (text "New password: ")
+        }
+
+
+inputNewPassword2 model =
+    Input.text (Style.inputStyle 200)
+        { onChange = GotNewPassword2
+        , text = model.newPassword2
+        , placeholder = Nothing
+
+        ---, show = False
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 110) ] (text "Password again: ")
+        }
+
+
+changePasswordButton : Model -> Element FrontendMsg
+changePasswordButton model =
+    Input.button Style.headerButton
+        { onPress =
+            case model.appMode of
+                UserValidation ChangePasswordState ->
+                    Just ChangePassword
+
+                _ ->
+                    Just <| SetAppMode (UserValidation ChangePasswordState)
+        , label = Element.text "Change password"
+        }
 
 
 adminStatus : Model -> Element FrontendMsg

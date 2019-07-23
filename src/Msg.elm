@@ -25,6 +25,7 @@ type ToBackend
     | RequestUsers
     | SendSignInInfo String String
     | SendSignUpInfo String String String
+    | SendChangePasswordInfo User.Username String String
     | SendLogToBackend (Maybe User) Log
     | CreateLog (Maybe User) Log
     | SendChangeLogName (Maybe User) String Log
@@ -33,6 +34,7 @@ type ToBackend
 
 type ToFrontend
     = NoOpToFrontend
+    | SendMessage String
     | SendLogsToFrontend (List Log)
     | SendValidatedUser (Maybe User)
     | SendUserList (List User)
@@ -55,6 +57,9 @@ type FrontendMsg
       -- User
     | GotUserName String
     | GotPassword String
+    | GotNewPassword1 String
+    | GotNewPassword2 String
+    | ChangePassword
     | GotEmail String
     | SignIn
     | SignUp
@@ -105,3 +110,4 @@ type AppMode
 type ValidationState
     = SignInState
     | SignUpState
+    | ChangePasswordState

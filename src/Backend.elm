@@ -78,6 +78,21 @@ updateFromFrontend clientId msg model =
                 False ->
                     ( model, sendToFrontend clientId <| SendValidatedUser Nothing )
 
+        SendChangePasswordInfo username password newPassword ->
+            case User.validateUser model.passwordDict username password of
+                True ->
+                    let
+                        passwordUpdater =
+                            Maybe.map (\ep -> User.encrypt newPassword)
+
+                        newPasswordDict =
+                            Dict.update username passwordUpdater model.passwordDict
+                    in
+                    ( { model | passwordDict = newPasswordDict }, sendToFrontend clientId <| SendMessage "Password changed" )
+
+                False ->
+                    ( model, sendToFrontend clientId <| SendMessage "Could not change password" )
+
         SendSignUpInfo username password email ->
             case User.add username password email ( model.passwordDict, model.userDict ) of
                 Ok ( newPasswordDict, newUserDict ) ->

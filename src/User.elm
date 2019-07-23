@@ -7,8 +7,10 @@ module User exposing
     , Username
     , add
     , deleteUser
+    , encrypt
     , fromDict
     , getData
+    , validateChangePassword
     , validateSignUpInfo
     , validateUser
     )
@@ -82,6 +84,23 @@ validateSignUpInfo username password email =
         |> userNameLongEnough username
         |> passwordLongEnough password
         |> emailValid email
+
+
+validateChangePassword : String -> String -> List String
+validateChangePassword password1 password2 =
+    []
+        |> passwordsMatch password1 password2
+        |> passwordLongEnough password1
+
+
+passwordsMatch : String -> String -> List String -> List String
+passwordsMatch password1 password2 errorList =
+    case password1 == password2 of
+        True ->
+            errorList
+
+        False ->
+            "Passwords don't match" :: errorList
 
 
 userNameLongEnough username errorList =
