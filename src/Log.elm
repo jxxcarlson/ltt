@@ -102,7 +102,7 @@ datePrefixFilter today k eventList =
         kDaysAgo_ =
             kDaysAgo k today
     in
-    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt >= 0) eventList
+    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt >= -1) eventList
 
 
 shiftPosix : Float -> Posix -> Posix
