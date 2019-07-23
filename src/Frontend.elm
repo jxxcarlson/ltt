@@ -1350,13 +1350,33 @@ filterPanel model =
     row [ spacing 8 ]
         [ el [ Font.bold ] (text "Filter:")
         , inputLogNameFilter model
-        , el [ Font.bold, Font.size 14 ] (text "After (days ago):")
+        , row [ spacing 8 ]
+            [ el [ Font.bold, Font.size 14 ] (text "After")
+            , displayShiftedDate model.eventCameAfterString model.currentTime
+            ]
         , inputEventCameAfterFilter model
-        , el [ Font.bold, Font.size 14 ] (text "Before (days ago):")
+        , row [ spacing 8 ]
+            [ el [ Font.bold, Font.size 14 ] (text "Before")
+            , displayShiftedDate model.eventCameBeforeString model.currentTime
+            ]
         , inputEventCameBeforeFilter model
 
         --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
+
+
+displayShiftedDate : String -> Posix -> Element FrontendMsg
+displayShiftedDate kDaysAgoString today =
+    case String.toInt kDaysAgoString of
+        Nothing ->
+            el [ width (px 75), Font.bold, Font.size 14 ] (text "(days)")
+
+        Just k ->
+            let
+                shiftedDate =
+                    Log.kDaysAgo k today
+            in
+            el [ width (px 75), Font.bold, Font.size 14 ] (text <| DateTime.humanDateStringFromPosix shiftedDate)
 
 
 inputLogNameFilter model =

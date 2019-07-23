@@ -10,6 +10,7 @@ module Log exposing
     , filter
     , groupingFilter
     , insertEvent
+    , kDaysAgo
     , replaceLog
     , updateEvent
     )
@@ -89,19 +90,19 @@ filter filterString logs =
 dateSuffixFilter : Posix -> Int -> List Event -> List Event
 dateSuffixFilter today k eventList =
     let
-        kDaysAgo =
-            shiftPosix (-86400.0 * toFloat k) today
+        kDaysAgo_ =
+            kDaysAgo k today
     in
-    List.filter (\event -> posixInterval event.insertedAt kDaysAgo > 0) eventList
+    List.filter (\event -> posixInterval event.insertedAt kDaysAgo_ > 0) eventList
 
 
 datePrefixFilter : Posix -> Int -> List Event -> List Event
 datePrefixFilter today k eventList =
     let
-        kDaysAgo =
-            shiftPosix (-86400.0 * toFloat k) today
+        kDaysAgo_ =
+            kDaysAgo k today
     in
-    List.filter (\event -> posixInterval kDaysAgo event.insertedAt > 0) eventList
+    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt > 0) eventList
 
 
 shiftPosix : Float -> Posix -> Posix
@@ -109,6 +110,11 @@ shiftPosix t p =
     ((Time.posixToMillis p |> toFloat) + (1000.0 * t))
         |> round
         |> Time.millisToPosix
+
+
+kDaysAgo : Int -> Posix -> Posix
+kDaysAgo k posix =
+    shiftPosix (-86400.0 * toFloat k) posix
 
 
 {-| Interval betwen two Posix times in Seconds
