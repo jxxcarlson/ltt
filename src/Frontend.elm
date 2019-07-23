@@ -638,10 +638,11 @@ passwordPanel model =
 
 
 inputCurrentPassword model =
-    Input.text (Style.inputStyle 200)
+    Input.currentPassword (Style.inputStyle 200)
         { onChange = GotPassword
         , text = model.password
         , placeholder = Nothing
+        , show = False
 
         ---, show = False
         , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 110) ] (text "Old password: ")
@@ -649,8 +650,9 @@ inputCurrentPassword model =
 
 
 inputNewPassword1 model =
-    Input.text (Style.inputStyle 200)
+    Input.newPassword (Style.inputStyle 200)
         { onChange = GotNewPassword1
+        , show = False
         , text = model.newPassword1
         , placeholder = Nothing
 
@@ -660,10 +662,11 @@ inputNewPassword1 model =
 
 
 inputNewPassword2 model =
-    Input.text (Style.inputStyle 200)
+    Input.newPassword (Style.inputStyle 200)
         { onChange = GotNewPassword2
         , text = model.newPassword2
         , placeholder = Nothing
+        , show = False
 
         ---, show = False
         , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 110) ] (text "Password again: ")
@@ -718,10 +721,11 @@ inputEmail model =
 
 
 inputPassword model =
-    Input.text (Style.inputStyle 200)
+    Input.currentPassword (Style.inputStyle 200)
         { onChange = GotPassword
         , text = model.password
         , placeholder = Nothing
+        , show = False
 
         ---, show = False
         , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Password")
