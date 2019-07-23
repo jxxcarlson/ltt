@@ -139,11 +139,7 @@ updateFromFrontend clientId msg model =
                     ( { model | userDict = UserLog.deleteEvent user.username log model.userDict eventId }, Cmd.none )
 
         ClientJoin ->
-            let
-                ( p, u ) =
-                    User.deleteUser "" ( model.passwordDict, model.userDict )
-            in
-            ( { model | passwordDict = p, userDict = u }, Cmd.none )
+            ( model, Cmd.none )
 
 
 sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
