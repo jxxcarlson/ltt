@@ -842,7 +842,7 @@ changeLogNameButton =
 
 
 inputChangeLogName model =
-    Input.text (Style.inputStyle 200)
+    Input.text (Style.inputStyle 190)
         { onChange = GotChangedLogName
         , text = model.changedLogName
         , placeholder = Nothing
@@ -1542,7 +1542,7 @@ viewLogs model =
     column [ spacing 12, padding 20, height (px 400) ]
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
-            [ spacing 4, Font.size 12, height (px 400), scrollbarY ]
+            [ spacing 4, Font.size 12, height (px 370), scrollbarY ]
             { data = Log.filter model.logFilterString model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
