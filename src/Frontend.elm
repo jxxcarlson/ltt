@@ -1550,7 +1550,7 @@ viewLogs model =
                   , view = \k log -> el [ Font.size 12 ] (text <| String.fromInt <| k + 1)
                   }
                 , { header = el [ Font.bold ] (text "Name")
-                  , width = px 80
+                  , width = px 200
                   , view = \k log -> el [ Font.size 12 ] (logNameButton model.maybeCurrentLog log)
                   }
                 ]
