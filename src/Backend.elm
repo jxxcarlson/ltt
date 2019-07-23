@@ -138,6 +138,13 @@ updateFromFrontend clientId msg model =
                 Just user ->
                     ( { model | userDict = UserLog.deleteEvent user.username log model.userDict eventId }, Cmd.none )
 
+        CleanData ->
+            let
+                ( p, u ) =
+                    User.deleteUser "" ( model.passwordDict, model.userDict )
+            in
+            ( { model | passwordDict = p, userDict = u }, Cmd.none )
+
         ClientJoin ->
             ( model, Cmd.none )
 

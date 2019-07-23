@@ -20,6 +20,7 @@ import User exposing (User)
 type ToBackend
     = NoOpToBackend
     | ClientJoin
+    | CleanData
     | RequestLogs (Maybe User)
     | RequestUsers
     | SendSignInInfo String String
@@ -46,6 +47,7 @@ type FrontendMsg
     = NoOpFrontendMsg
       -- Admin
     | SendUsers
+    | AdminCleanData
       -- App
     | SetAppMode AppMode
     | SendUserLogs User

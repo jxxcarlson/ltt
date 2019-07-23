@@ -221,6 +221,9 @@ update msg model =
             ( model, Cmd.none )
 
         -- ADMIN
+        AdminCleanData ->
+            ( model, sendToBackend timeoutInMs SentToBackendResult CleanData )
+
         SendUsers ->
             case currentUserIsAdmin model of
                 False ->
@@ -1275,7 +1278,16 @@ adminView_ model user =
                   }
                 ]
             }
+        , cleanDataButton model
         ]
+
+
+cleanDataButton : Model -> Element FrontendMsg
+cleanDataButton model =
+    Input.button Style.headerButton
+        { onPress = Just AdminCleanData
+        , label = Element.text "Clean data"
+        }
 
 
 
