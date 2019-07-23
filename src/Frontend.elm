@@ -1016,9 +1016,9 @@ viewLog model =
                 average =
                     TypedTime.multiply (1.0 / nEvents) eventSum_
             in
-            column [ spacing 12, padding 20, height (px 430), scrollbarY ]
+            column [ spacing 12, padding 20, height (px 430) ]
                 [ el [ Font.size 16, Font.bold ] (text (Maybe.map .name model.maybeCurrentLog |> Maybe.withDefault "XXX"))
-                , indexedTable [ spacing 4, Font.size 12 ]
+                , indexedTable [ spacing 4, Font.size 12, height (px 400), scrollbarY ]
                     { data = events
                     , columns =
                         [ { header = el [ Font.bold ] (text <| idLabel model)
@@ -1351,7 +1351,7 @@ adminView_ model user =
     column Style.mainColumnX
         [ el [ Font.size 14 ] (text <| "Admin: " ++ user.username)
         , indexedTable
-            [ spacing 4, Font.size 12, paddingXY 0 12 ]
+            [ spacing 4, Font.size 12, paddingXY 0 12, height (px 300), scrollbarY ]
             { data = model.userList
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
@@ -1542,7 +1542,7 @@ viewLogs model =
     column [ spacing 12, padding 20, height (px 400) ]
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
-            [ spacing 4, Font.size 12 ]
+            [ spacing 4, Font.size 12, height (px 400), scrollbarY ]
             { data = Log.filter model.logFilterString model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
