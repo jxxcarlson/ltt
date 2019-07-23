@@ -952,7 +952,7 @@ viewLog model =
                         ]
                     }
                 , row [ spacing 24, alignBottom, alignRight ]
-                    [ el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "N: " ++ String.fromInt (List.length events))
+                    [ el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Count: " ++ String.fromInt (List.length events))
                     , el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Average: " ++ TypedTime.timeAsStringWithUnit Minutes average)
                     , el [ moveLeft 10, Font.size 16, Font.bold ] (text <| "Total: " ++ TypedTime.timeAsStringWithUnit Minutes eventSum_)
                     ]
