@@ -1,4 +1,17 @@
-module User exposing (Password, PasswordDict, User, UserDict, UserInfo, Username, add, fromDict, getData, validateSignUpInfo, validateUser)
+module User exposing
+    ( Password
+    , PasswordDict
+    , User
+    , UserDict
+    , UserInfo
+    , Username
+    , add
+    , deleteUser
+    , fromDict
+    , getData
+    , validateSignUpInfo
+    , validateUser
+    )
 
 import Dict exposing (Dict)
 
@@ -121,3 +134,8 @@ add username password email ( passwordDict, userDict ) =
 passwordErrors : String -> List String
 passwordErrors str =
     []
+
+
+deleteUser : Username -> ( PasswordDict, UserDict a ) -> ( PasswordDict, UserDict a )
+deleteUser username ( passwordDict, userDict ) =
+    ( Dict.remove username passwordDict, Dict.remove username userDict )
