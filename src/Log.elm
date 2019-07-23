@@ -93,7 +93,7 @@ dateSuffixFilter today k eventList =
         kDaysAgo_ =
             kDaysAgo k today
     in
-    List.filter (\event -> posixInterval event.insertedAt kDaysAgo_ > 0) eventList
+    List.filter (\event -> posixInterval event.insertedAt kDaysAgo_ >= 0) eventList
 
 
 datePrefixFilter : Posix -> Int -> List Event -> List Event
@@ -102,7 +102,7 @@ datePrefixFilter today k eventList =
         kDaysAgo_ =
             kDaysAgo k today
     in
-    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt > 0) eventList
+    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt >= 0) eventList
 
 
 shiftPosix : Float -> Posix -> Posix
