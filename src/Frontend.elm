@@ -278,8 +278,23 @@ update msg model =
 
                         _ ->
                             ""
+
+                visibilityOfLogList =
+                    case mode of
+                        Editing ->
+                            Visible
+
+                        _ ->
+                            model.visibilityOfLogList
             in
-            ( { model | appMode = mode, filterState = filterState, message = message }, cmd )
+            ( { model
+                | appMode = mode
+                , visibilityOfLogList = visibilityOfLogList
+                , filterState = filterState
+                , message = message
+              }
+            , cmd
+            )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
@@ -760,7 +775,7 @@ header model =
         , userValidationModeButton model
         , showIf (model.currentUser /= Nothing) (loggingModeButton model)
         , showIf (model.currentUser /= Nothing) (editingModeButton model)
-        , showIf (model.currentUser /= Nothing) (toggleLogsButton model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (toggleLogsButton model)
         , el [ centerX, Font.size 18, Font.color Style.white ] (text <| "Time Log" ++ currentUserName model)
         ]
 
