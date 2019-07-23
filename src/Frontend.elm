@@ -1259,9 +1259,9 @@ adminView model =
 adminView_ : Model -> User -> Element FrontendMsg
 adminView_ model user =
     column Style.mainColumnX
-        [ el [] (text <| "Admin: " ++ user.username)
+        [ el [ Font.size 14 ] (text <| "Admin: " ++ user.username)
         , indexedTable
-            [ spacing 4, Font.size 12 ]
+            [ spacing 4, Font.size 12, paddingXY 0 12 ]
             { data = model.userList
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
