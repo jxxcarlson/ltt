@@ -626,7 +626,10 @@ signedInUserView model user =
         [ el [] (text <| "Signed in as " ++ user.username)
         , signOutButton model
         , showIf (model.appMode == UserValidation ChangePasswordState) (passwordPanel model)
-        , changePasswordButton model
+        , row [ spacing 12 ]
+            [ changePasswordButton model
+            , showIf (model.appMode == UserValidation ChangePasswordState) (cancelChangePasswordButton model)
+            ]
         , adminStatus model
         ]
 
@@ -763,6 +766,20 @@ cancelSignUpButton model =
         { onPress =
             case model.appMode of
                 UserValidation SignUpState ->
+                    Just (SetAppMode (UserValidation SignInState))
+
+                _ ->
+                    Just NoOpFrontendMsg
+        , label = Element.text "Cancel"
+        }
+
+
+cancelChangePasswordButton : Model -> Element FrontendMsg
+cancelChangePasswordButton model =
+    Input.button Style.headerButton
+        { onPress =
+            case model.appMode of
+                UserValidation ChangePasswordState ->
                     Just (SetAppMode (UserValidation SignInState))
 
                 _ ->
