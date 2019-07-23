@@ -707,7 +707,7 @@ inputUserName model =
         { onChange = GotUserName
         , text = model.username
         , placeholder = Nothing
-        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Username")
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 100) ] (text "Username")
         }
 
 
@@ -716,7 +716,7 @@ inputEmail model =
         { onChange = GotEmail
         , text = model.email
         , placeholder = Nothing
-        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Email")
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 100) ] (text "Email")
         }
 
 
@@ -728,7 +728,7 @@ inputPassword model =
         , show = False
 
         ---, show = False
-        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Password")
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 100) ] (text "Password")
         }
 
 
