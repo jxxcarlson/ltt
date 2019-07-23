@@ -611,7 +611,10 @@ noUserView model =
         , showIf (model.appMode == UserValidation SignUpState) (el [ Font.size 12 ] (text "A real email address is only needed for password recovery in real production."))
         , row [ spacing 12, paddingXY 0 12 ]
             [ showIf (model.appMode == UserValidation SignInState) (signInButton model)
-            , signUpButton model
+            , row [ spacing 12 ]
+                [ signUpButton model
+                , showIf (model.appMode == UserValidation SignUpState) (cancelSignUpButton model)
+                ]
             ]
         , el [ Font.size 12 ] (text model.message)
         ]
@@ -751,6 +754,20 @@ signUpButton model =
                 _ ->
                     Just (SetAppMode (UserValidation SignUpState))
         , label = Element.text "Sign Up"
+        }
+
+
+cancelSignUpButton : Model -> Element FrontendMsg
+cancelSignUpButton model =
+    Input.button Style.headerButton
+        { onPress =
+            case model.appMode of
+                UserValidation SignUpState ->
+                    Just (SetAppMode (UserValidation SignInState))
+
+                _ ->
+                    Just NoOpFrontendMsg
+        , label = Element.text "Cancel"
         }
 
 
