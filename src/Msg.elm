@@ -15,6 +15,7 @@ import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
 import User exposing (User)
+import UserLog exposing (UserStats)
 
 
 type ToBackend
@@ -30,6 +31,7 @@ type ToBackend
     | CreateLog (Maybe User) Log
     | SendChangeLogName (Maybe User) String Log
     | BEDeleteEvent (Maybe User) Log Int
+    | GetUserStats
 
 
 type ToFrontend
@@ -38,6 +40,7 @@ type ToFrontend
     | SendLogsToFrontend (List Log)
     | SendValidatedUser (Maybe User)
     | SendUserList (List User)
+    | SendUserStats UserStats
 
 
 type BackendMsg

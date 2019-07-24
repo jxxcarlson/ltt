@@ -1,6 +1,6 @@
-module UserLog exposing (create, deleteEvent, update)
+module UserLog exposing (UserStats, compile, create, deleteEvent, update)
 
-import Dict
+import Dict exposing (Dict)
 import Log exposing (Log)
 import User exposing (UserDict, UserInfo, Username)
 
@@ -55,24 +55,49 @@ deleteEvent username log userDict eventId =
 
 
 
--- let
---     maybeTargetLog : Maybe Log
---     maybeTargetLog =
---         List.filter (\log -> log.id == logId) userInfo.data
---             |> List.head
 --
---     maybeChangedData =
---         Maybe.map (List.filter (\event -> event.id /= eventId)) (Maybe.map .data maybeTargetLog)
+-- USER STATS
 --
---     maybeChangedLog =
---
---     updater : Log -> Maybe (UserInfo Log) -> Maybe (UserInfo Log)
---     updater changedLog_ =
---         Maybe.map (\uInfo -> { uInfo | data = Log.replaceLog changedLog_ uInfo.data })
--- in
--- -- case maybeChangedLog of
---     Nothing ->
---         ( model, Cmd.none )
---
---     Just changedLog ->
---         ( { model | userDict = Dict.update username (updater changedLog) model.userDict }, Cmd.none )
+
+
+type alias UserStat =
+    { numberOfLogs : Int
+    , numberOfEvents : Int
+    }
+
+
+numberOfEvents_ : Username -> UserDict Log -> Int
+numberOfEvents_ username userDict =
+    let
+        logs =
+            Maybe.map .data (Dict.get username userDict) |> Maybe.withDefault []
+
+        folder =
+            \log acc -> acc + List.length log.data
+    in
+    List.foldl folder 0 logs
+
+
+userStat : Username -> UserDict Log -> UserStat
+userStat username userDict =
+    case Dict.get username userDict of
+        Nothing ->
+            { numberOfLogs = 0, numberOfEvents = 0 }
+
+        Just userInfo ->
+            { numberOfLogs = List.length userInfo.data
+            , numberOfEvents = numberOfEvents_ username userDict
+            }
+
+
+type alias UserStats =
+    Dict Username UserStat
+
+
+compile : UserDict Log -> UserStats
+compile userDict =
+    let
+        folder =
+            \uname dict -> Dict.insert uname (userStat uname userDict) dict
+    in
+    List.foldl folder Dict.empty (Dict.keys userDict)

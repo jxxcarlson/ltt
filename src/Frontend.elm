@@ -29,6 +29,7 @@ import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
 import User exposing (User, Username)
+import UserLog exposing (UserStats)
 
 
 app =
@@ -86,6 +87,9 @@ type alias Model =
     , message : String
     , visibilityOfLogList : Visibility
 
+    -- ADMIN
+    , userStats : UserStats
+
     -- USER
     , currentUser : Maybe User
     , username : String
@@ -135,6 +139,9 @@ initialModel =
     { input = "App started"
     , message = "Please sign in"
     , appMode = UserValidation SignInState
+
+    -- ADMIN
+    , userStats = Dict.empty
 
     -- USER
     , currentUser = Nothing
@@ -201,6 +208,9 @@ updateFromBackend msg model =
         NoOpToFrontend ->
             ( model, Cmd.none )
 
+        SendUserStats userStats ->
+            ( { model | userStats = userStats }, Cmd.none )
+
         SendMessage str ->
             ( { model | message = str }, Cmd.none )
 
@@ -237,7 +247,9 @@ update msg model =
                     ( model, Cmd.none )
 
                 True ->
-                    ( model, sendToBackend timeoutInMs SentToBackendResult RequestUsers )
+                    ( model
+                    , sendToBackend timeoutInMs SentToBackendResult RequestUsers
+                    )
 
         -- sendToBackend timeoutInMs SentToBackendResult (SendUserList model.username model.password) )
         -- BACKEND
@@ -265,7 +277,10 @@ update msg model =
                 cmd =
                     case mode of
                         Admin ->
-                            sendToBackend timeoutInMs SentToBackendResult RequestUsers
+                            Cmd.batch
+                                [ sendToBackend timeoutInMs SentToBackendResult RequestUsers
+                                , sendToBackend timeoutInMs SentToBackendResult GetUserStats
+                                ]
 
                         _ ->
                             Cmd.none
@@ -1397,13 +1412,37 @@ adminView_ model user =
                   , view = \k usr -> el [ Font.size 12 ] (text usr.username)
                   }
                 , { header = el [ Font.bold ] (text "Email")
-                  , width = px 80
+                  , width = px 200
                   , view = \k usr -> el [ Font.size 12 ] (text usr.email)
+                  }
+                , { header = el [ Font.bold ] (text "Logs")
+                  , width = px 80
+                  , view = \k usr -> el [ Font.size 12 ] (text <| displayNumberOfLogs usr.username model.userStats)
+                  }
+                , { header = el [ Font.bold ] (text "Events")
+                  , width = px 80
+                  , view = \k usr -> el [ Font.size 12 ] (text <| displayNumberOfEvents usr.username model.userStats)
                   }
                 ]
             }
         , cleanDataButton model
         ]
+
+
+displayNumberOfLogs : Username -> UserStats -> String
+displayNumberOfLogs username userStats =
+    Dict.get username userStats
+        |> Maybe.map .numberOfLogs
+        |> Maybe.map String.fromInt
+        |> Maybe.withDefault "-"
+
+
+displayNumberOfEvents : Username -> UserStats -> String
+displayNumberOfEvents username userStats =
+    Dict.get username userStats
+        |> Maybe.map .numberOfEvents
+        |> Maybe.map String.fromInt
+        |> Maybe.withDefault "-"
 
 
 cleanDataButton : Model -> Element FrontendMsg

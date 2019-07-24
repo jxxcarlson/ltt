@@ -70,6 +70,9 @@ updateFromFrontend clientId msg model =
         RequestUsers ->
             ( model, sendToFrontend clientId (SendUserList (userList model.userDict)) )
 
+        GetUserStats ->
+            ( model, sendToFrontend clientId (SendUserStats (UserLog.compile model.userDict)) )
+
         SendSignInInfo username password ->
             case User.validateUser model.passwordDict username password of
                 True ->
