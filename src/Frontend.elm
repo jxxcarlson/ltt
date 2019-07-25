@@ -992,7 +992,12 @@ masterLogView model =
                 [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
                 , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
                 ]
-            , showIf (model.maybeCurrentLog /= Nothing) (deleteLogButton model)
+            , showIf (model.maybeCurrentLog /= Nothing)
+                (row [ spacing 12 ]
+                    [ deleteLogButton model
+                    , showIf (model.deleteLogSafety == DeleteLogSafetyOff) cancelDeleteLogButton
+                    ]
+                )
             ]
         ]
 
@@ -1021,6 +1026,14 @@ newLogButton =
     Input.button Style.button
         { onPress = Just MakeNewLog
         , label = Element.text "New log"
+        }
+
+
+cancelDeleteLogButton : Element FrontendMsg
+cancelDeleteLogButton =
+    Input.button Style.button
+        { onPress = Just <| SetDeleteLogSafety DeleteLogSafetyOn
+        , label = Element.text "Cancel"
         }
 
 
