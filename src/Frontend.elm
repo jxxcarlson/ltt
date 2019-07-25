@@ -21,7 +21,7 @@ import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
 import Log exposing (DateFilter(..), Event, EventGrouping(..), Log)
-import Msg exposing (AppMode(..), BackendMsg(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
+import Msg exposing (AppMode(..), BackendMsg(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
 import Style
 import Task
 import TestData exposing (..)
@@ -114,6 +114,7 @@ type alias Model =
     , changedLogName : String
     , maybeCurrentLog : Maybe Log
     , logFilterString : String
+    , deleteLogSafety : DeleteLogSafety
 
     -- TIMER
     , beginTime : Maybe Posix
@@ -157,6 +158,8 @@ initialModel =
     , eventDurationString = ""
     , eventCameBeforeString = ""
     , eventCameAfterString = ""
+
+    -- LOGS
     , logs = []
     , newLogName = ""
     , changedLogName = ""
@@ -164,6 +167,9 @@ initialModel =
     , maybeCurrentEvent = Nothing
     , logFilterString = ""
     , visibilityOfLogList = Visible
+    , deleteLogSafety = DeleteLogSafetyOn
+
+    -- TIME
     , currentTime = Time.millisToPosix 0
     , beginTime = Nothing
     , doUpdateElapsedTime = False
@@ -320,6 +326,9 @@ update msg model =
             , cmd
             )
 
+        SetDeleteLogSafety deleteLogSafetyState ->
+            ( { model | deleteLogSafety = deleteLogSafetyState }, Cmd.none )
+
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
 
@@ -468,10 +477,10 @@ update msg model =
         DeleteCurrentLog ->
             case model.maybeCurrentLog of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( { model | deleteLogSafety = DeleteLogSafetyOn }, Cmd.none )
 
                 Just log ->
-                    ( { model | maybeCurrentLog = Nothing }
+                    ( { model | maybeCurrentLog = Nothing, deleteLogSafety = DeleteLogSafetyOn }
                     , sendToBackend timeoutInMs SentToBackendResult (DeleteLog model.currentUser log)
                     )
 
@@ -826,38 +835,6 @@ signOutButton model =
 --
 
 
-editingView : Model -> Element FrontendMsg
-editingView model =
-    column Style.mainColumnX
-        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
-        , row [ spacing 12 ]
-            [ logListPanel model
-            , eventListDisplay model
-            , logEventPanel model
-            ]
-        , row [ spacing 12 ]
-            [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
-            , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
-            ]
-        ]
-
-
-logEventPanel model =
-    case model.maybeCurrentEvent of
-        Nothing ->
-            Element.none
-
-        Just evt ->
-            column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
-                [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
-                , column [ spacing 12 ]
-                    [ inputChangeEventDuration model
-                    , changeDurationButton model
-                    ]
-                , deleteEventButton model evt
-                ]
-
-
 changeDurationButton model =
     case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
         ( Just log, Just event ) ->
@@ -900,7 +877,7 @@ changeLogNameButton =
 
 
 inputChangeLogName model =
-    Input.text (Style.inputStyle 190)
+    Input.text (Style.inputStyle 180)
         { onChange = GotChangedLogName
         , text = model.changedLogName
         , placeholder = Nothing
@@ -1010,7 +987,32 @@ masterLogView model =
             , eventListDisplay model
             , eventPanel model
             ]
-        , row [ spacing 12 ] [ deleteLogButton model, newLogButton, inputNewLogName model ]
+        , column [ spacing 12 ]
+            [ row [ spacing 12 ]
+                [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
+                , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
+                ]
+            , showIf (model.maybeCurrentLog /= Nothing) (deleteLogButton model)
+            ]
+        ]
+
+
+editingView : Model -> Element FrontendMsg
+editingView model =
+    column Style.mainColumnX
+        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        , row [ spacing 12 ]
+            [ logListPanel model
+            , eventListDisplay model
+            , logEventPanel model
+            ]
+        , column [ spacing 12 ]
+            [ row [ spacing 12 ]
+                [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
+                , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
+                ]
+            , deleteLogButton model
+            ]
         ]
 
 
@@ -1024,10 +1026,18 @@ newLogButton =
 
 deleteLogButton : Model -> Element FrontendMsg
 deleteLogButton model =
-    Input.button Style.button
-        { onPress = Just DeleteCurrentLog
-        , label = Element.text "Delete log"
-        }
+    case model.deleteLogSafety of
+        DeleteLogSafetyOn ->
+            Input.button Style.button
+                { onPress = Just <| SetDeleteLogSafety DeleteLogSafetyOff
+                , label = Element.text "Delete log"
+                }
+
+        DeleteLogSafetyOff ->
+            Input.button Style.dangerousButton
+                { onPress = Just DeleteCurrentLog
+                , label = Element.text "Delete forever?"
+                }
 
 
 inputNewLogName model =
@@ -1150,13 +1160,29 @@ eventPanel model =
                         GroupByDay ->
                             Log.eventsByDay events2
             in
-            column [ Font.size 12, spacing 36, moveRight 40, width (px 450) ]
+            column [ Font.size 12, spacing 36, moveRight 40, width (px 400) ]
                 [ row [ moveLeft 40 ] [ graph model events ]
                 , row [ spacing 16 ]
                     [ row [ spacing 8 ] [ setMinutesButton model, setHoursButton model ]
                     , row [ spacing 8 ] [ el [ Font.bold, Font.size 14 ] (text "Group:"), noFilterButton model, filterByDayButton model ]
                     ]
                 , newEventPanel 350 model
+                ]
+
+
+logEventPanel model =
+    case model.maybeCurrentEvent of
+        Nothing ->
+            Element.none
+
+        Just evt ->
+            column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
+                [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
+                , column [ spacing 12 ]
+                    [ inputChangeEventDuration model
+                    , changeDurationButton model
+                    ]
+                , deleteEventButton model evt
                 ]
 
 
@@ -1527,17 +1553,6 @@ eventListDisplay model =
         ]
 
 
-
--- editPanel model =
---     column [ spacing 12, width (px 300), alignTop ]
---         [ el [ Font.size 16, Font.bold, alignTop ] (text "Edit Panel")
---         , logEditPanel model
---         , logEventPanel model
---         ]
---
---
-
-
 filterPanel model =
     row [ spacing 8 ]
         [ el [ Font.bold ] (text "Filter:")
@@ -1603,28 +1618,6 @@ logListPanel model =
     column [ spacing 20, height (px 450), width (px 350), Border.width 1 ]
         [ viewLogs model
         ]
-
-
-
---
--- eventListDisplay : Model -> Element FrontendMsg
--- eventListDisplay model =
---     column [ spacing 20, height (px 450), width (px 350), Border.width 1 ]
---         [ viewEvents model
---         ]
---
---
--- controlPanel model =
---     column [ padding 8, Border.width 1, width (px 562), spacing 12 ]
---         [ newLogPanel model
---         , el [ Font.size 14 ] (text <| model.message)
---         , el [ Font.size 11 ] (text <| "Server: " ++ Configuration.backend)
---         ]
---
---
---
--- STYLE
---
 
 
 viewLogs : Model -> Element FrontendMsg

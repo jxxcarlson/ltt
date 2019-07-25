@@ -1,6 +1,7 @@
 module Msg exposing
     ( AppMode(..)
     , BackendMsg(..)
+    , DeleteLogSafety(..)
     , FrontendMsg(..)
     , TimerCommand(..)
     , ToBackend(..)
@@ -91,10 +92,16 @@ type FrontendMsg
       -- Log
     | MakeNewLog
     | DeleteCurrentLog
+    | SetDeleteLogSafety DeleteLogSafety
     | GotNewLogName String
     | GotLogFilter String
     | GotChangedLogName String
     | ChangeLogName
+
+
+type DeleteLogSafety
+    = DeleteLogSafetyOn
+    | DeleteLogSafetyOff
 
 
 type TimerCommand
