@@ -1672,12 +1672,11 @@ viewLogs model =
                 |> (\x -> 100 * x)
                 |> Utility.roundTo 0
                 |> String.fromFloat
-                |> String.padLeft 3 ' '
     in
     column [ spacing 12, padding 20, height (px 400) ]
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
-            [ spacing 4, Font.size 12, height (px 370), scrollbarY ]
+            [ spacing 4, Font.size 12, height (px 370), width (px 300), scrollbarY ]
             { data = Log.filter model.logFilterString model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
@@ -1685,7 +1684,7 @@ viewLogs model =
                   , view = \k log -> el [ Font.size 12 ] (text <| idx k log)
                   }
                 , { header = el [ Font.bold ] (text "Name")
-                  , width = px 180
+                  , width = px 170
                   , view = \k log -> el [ Font.size 12 ] (logNameButton model.maybeCurrentLog log)
                   }
                 , { header = el [ Font.bold ] (text "Total")
@@ -1694,7 +1693,7 @@ viewLogs model =
                   }
                 , { header = el [ Font.bold ] (text "pc")
                   , width = px 60
-                  , view = \k log -> el [ Font.size 12, width (px 60), alignRight ] (text <| fraction log)
+                  , view = \k log -> row [ width (px 90) ] [ el [ Font.size 12 ] (text <| fraction log) ]
                   }
                 ]
             }
