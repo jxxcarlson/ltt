@@ -134,7 +134,18 @@ updateFromFrontend clientId msg model =
                     ( model, Cmd.none )
 
                 Just user ->
-                    ( { model | userDict = UserLog.create user.username log model.userDict }, Cmd.none )
+                    let
+                        newUserDict =
+                            UserLog.create user.username log model.userDict
+
+                        usersLogs =
+                            Dict.get user.username newUserDict
+                                |> Maybe.map .data
+                                |> Maybe.withDefault []
+                    in
+                    ( { model | userDict = newUserDict }
+                    , sendToFrontend clientId (SendLogsToFrontend usersLogs)
+                    )
 
         SendChangeLogName maybeUsername newLogName log ->
             case maybeUsername of
@@ -160,8 +171,11 @@ updateFromFrontend clientId msg model =
             let
                 ( p, u ) =
                     User.deleteUser "" ( model.passwordDict, model.userDict )
+
+                uu =
+                    UserLog.clean "jxxcarlson" u
             in
-            ( { model | passwordDict = p, userDict = u }, Cmd.none )
+            ( { model | passwordDict = p, userDict = uu }, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )

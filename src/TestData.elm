@@ -25,12 +25,12 @@ userDict =
 
 userInfo1 : UserInfo Log
 userInfo1 =
-    { email = "jxxcarlson@gmail.com", admin = True, data = [ log1, log2 ] }
+    { email = "jxxcarlson@gmail.com", admin = True, counter = 2, data = [ log1, log2 ] }
 
 
 userInfo2 : UserInfo Log
 userInfo2 =
-    { email = "socrates@philosophers.org", admin = False, data = [] }
+    { email = "socrates@philosophers.org", admin = False, counter = 0, data = [] }
 
 
 e1 : Event

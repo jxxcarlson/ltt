@@ -1,4 +1,4 @@
-module UserLog exposing (UserStats, compile, create, deleteEvent, update)
+module UserLog exposing (UserStats, clean, compile, create, deleteEvent, update)
 
 import Dict exposing (Dict)
 import Log exposing (Log)
@@ -14,11 +14,11 @@ create username log userDict =
         Just userInfo ->
             let
                 newLog =
-                    { log | id = List.length userInfo.data + 1 }
+                    { log | id = userInfo.counter + 1 }
 
                 updater : Maybe (UserInfo Log) -> Maybe (UserInfo Log)
                 updater =
-                    Maybe.map (\uInfo -> { uInfo | data = log :: uInfo.data })
+                    Maybe.map (\uInfo -> { uInfo | counter = uInfo.counter + 1, data = newLog :: uInfo.data })
             in
             Dict.update username updater userDict
 
@@ -36,6 +36,23 @@ update username log userDict =
 
                 newUserInfo =
                     { userInfo | data = newLogs }
+            in
+            Dict.update username (\x -> Just newUserInfo) userDict
+
+
+clean : Username -> UserDict Log -> UserDict Log
+clean username userDict =
+    case Dict.get username userDict of
+        Nothing ->
+            userDict
+
+        Just userInfo ->
+            let
+                newData =
+                    List.filter (\log -> log.id > 0) userInfo.data
+
+                newUserInfo =
+                    { userInfo | data = newData }
             in
             Dict.update username (\x -> Just newUserInfo) userDict
 

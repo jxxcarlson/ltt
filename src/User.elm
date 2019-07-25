@@ -35,7 +35,7 @@ type alias UserDict a =
 
 
 type alias UserInfo a =
-    { email : String, admin : Bool, data : List a }
+    { email : String, admin : Bool, counter : Int, data : List a }
 
 
 type alias User =
@@ -139,7 +139,7 @@ add username password email ( passwordDict, userDict ) =
                     Dict.insert username (encrypt password) passwordDict
 
                 newUserInfo =
-                    { email = email, admin = False, data = [] }
+                    { email = email, admin = False, counter = 0, data = [] }
 
                 newUserDict =
                     Dict.insert username newUserInfo userDict
