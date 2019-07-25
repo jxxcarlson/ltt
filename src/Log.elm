@@ -8,10 +8,12 @@ module Log exposing
     , eventSum
     , eventsByDay
     , filter
+    , grandTotal
     , groupingFilter
     , insertEvent
     , kDaysAgo
     , replaceLog
+    , total
     , updateEvent
     )
 
@@ -194,18 +196,13 @@ augmentPair ( p, f ) =
 -- https://www.revolvy.com/page/Rata-Die
 -- https://www.revolvy.com/page/Julian-day?cr=1
 -- RD = floor( JD − 1 721 424.5 )
--- correctTimeZone : Int -> List Event -> List Event
--- correctTimeZone timeZoneOffset list =
---     list
---         |> List.map (\r -> offsetTimeZone timeZoneOffset r)
---
--- offsetTi©meZone : Int -> Event -> Event
--- offsetTimeZone offset event =
---     let
---         (NaiveDateTime str) =
---             event.insertedAt
---     in
---     { event | insertedAt = NaiveDateTime (DateTime.offsetDateTimeStringByHours offset str) }
+
+
+total : Log -> TypedTime
+total log =
+    log.data
+        |> List.map .duration
+        |> TypedTime.sum
 
 
 timeSeries : List Event -> List ( Posix, Float )
@@ -352,3 +349,9 @@ updateEvent note duration event log =
             LE.setIf (\e -> e.id == event.id) newEvent log.data
     in
     { log | data = newData }
+
+
+grandTotal : List Log -> TypedTime
+grandTotal logList =
+    List.map total logList
+        |> TypedTime.sum

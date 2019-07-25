@@ -30,6 +30,7 @@ import TypedTime exposing (..)
 import Url exposing (Url)
 import User exposing (User, Username)
 import UserLog exposing (UserStats)
+import Utility
 
 
 app =
@@ -1661,6 +1662,17 @@ viewLogs model =
     let
         idx =
             logIdDisplay model.appMode
+
+        grandTotal =
+            Log.grandTotal model.logs
+
+        fraction : Log -> String
+        fraction log =
+            TypedTime.divideBy grandTotal (Log.total log)
+                |> (\x -> 100 * x)
+                |> Utility.roundTo 0
+                |> String.fromFloat
+                |> String.padLeft 3 ' '
     in
     column [ spacing 12, padding 20, height (px 400) ]
         [ el [ Font.size 16, Font.bold ] (text "Logs")
@@ -1669,12 +1681,20 @@ viewLogs model =
             { data = Log.filter model.logFilterString model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
-                  , width = px 40
+                  , width = px 20
                   , view = \k log -> el [ Font.size 12 ] (text <| idx k log)
                   }
                 , { header = el [ Font.bold ] (text "Name")
-                  , width = px 200
+                  , width = px 180
                   , view = \k log -> el [ Font.size 12 ] (logNameButton model.maybeCurrentLog log)
+                  }
+                , { header = el [ Font.bold ] (text "Total")
+                  , width = px 60
+                  , view = \k log -> el [ Font.size 12 ] (text <| timeAsStringWithUnit Minutes <| Log.total log)
+                  }
+                , { header = el [ Font.bold ] (text "pc")
+                  , width = px 60
+                  , view = \k log -> el [ Font.size 12, width (px 60), alignRight ] (text <| fraction log)
                   }
                 ]
             }

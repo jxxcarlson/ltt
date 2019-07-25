@@ -9,6 +9,7 @@ module TypedTime exposing
     , convertToSeconds
     , decodeHM
     , decodeMinutes
+    , divideBy
     , hmRecordFromSeconds
     , hmStringFromSeconds
     , hmsRecordFromSeconds
@@ -51,6 +52,11 @@ sum timeList =
 multiply : Float -> TypedTime -> TypedTime
 multiply f (TypedTime unit value) =
     TypedTime unit (f * value)
+
+
+divideBy : TypedTime -> TypedTime -> Float
+divideBy denom num =
+    convertToSeconds num / convertToSeconds denom
 
 
 {-|

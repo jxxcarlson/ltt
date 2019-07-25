@@ -2,6 +2,7 @@ module UserLog exposing (UserStats, clean, compile, create, delete, deleteEvent,
 
 import Dict exposing (Dict)
 import Log exposing (Log)
+import TypedTime exposing (TypedTime)
 import User exposing (UserDict, UserInfo, Username)
 
 
