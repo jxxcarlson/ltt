@@ -21,7 +21,7 @@ import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
 import Log exposing (DateFilter(..), Event, EventGrouping(..), Log)
-import Msg exposing (AppMode(..), BackendMsg(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
+import Msg exposing (AppMode(..), BackendMsg(..), DeleteEventSafety(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
 import Style
 import Task
 import TestData exposing (..)
@@ -101,6 +101,7 @@ type alias Model =
 
     -- EVENTS
     , changedEventDurationString : String
+    , deleteEventSafety : DeleteEventSafety
     , eventDurationString : String
     , eventCameBeforeString : String
     , eventCameAfterString : String
@@ -156,6 +157,7 @@ initialModel =
     -- EVENT
     , changedEventDurationString = ""
     , eventDurationString = ""
+    , deleteEventSafety = DeleteEventSafetyOn
     , eventCameBeforeString = ""
     , eventCameAfterString = ""
 
@@ -328,6 +330,9 @@ update msg model =
 
         SetDeleteLogSafety deleteLogSafetyState ->
             ( { model | deleteLogSafety = deleteLogSafetyState }, Cmd.none )
+
+        SetDeleteEventSafety deleteEventSafetyState ->
+            ( { model | deleteEventSafety = deleteEventSafetyState }, Cmd.none )
 
         ToggleLogs ->
             ( { model | visibilityOfLogList = toggleVisibility model.visibilityOfLogList }, Cmd.none )
@@ -856,16 +861,31 @@ inputChangeEventDuration model =
         }
 
 
-deleteEventButton model event =
-    case model.maybeCurrentLog of
-        Nothing ->
+deleteEventButton model =
+    case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
+        ( Just lg, Just evt ) ->
+            case model.deleteEventSafety of
+                DeleteEventSafetyOff ->
+                    Input.button Style.dangerousButton
+                        { onPress = Just (DeleteEvent lg.id evt.id)
+                        , label = Element.text <| "Remove forever?"
+                        }
+
+                DeleteEventSafetyOn ->
+                    Input.button Style.button
+                        { onPress = Just (SetDeleteEventSafety DeleteEventSafetyOff)
+                        , label = Element.text <| "Remove event"
+                        }
+
+        _ ->
             Element.none
 
-        Just log ->
-            Input.button Style.dangerousButton
-                { onPress = Just (DeleteEvent log.id event.id)
-                , label = Element.text <| "Remove event"
-                }
+
+cancelDeleteEventButton =
+    Input.button Style.button
+        { onPress = Just (SetDeleteEventSafety DeleteEventSafetyOn)
+        , label = Element.text <| "Cancel"
+        }
 
 
 changeLogNameButton : Element FrontendMsg
@@ -1195,7 +1215,10 @@ logEventPanel model =
                     [ inputChangeEventDuration model
                     , changeDurationButton model
                     ]
-                , deleteEventButton model evt
+                , row [ spacing 12 ]
+                    [ deleteEventButton model
+                    , showIf (model.deleteEventSafety == DeleteEventSafetyOff) cancelDeleteEventButton
+                    ]
                 ]
 
 

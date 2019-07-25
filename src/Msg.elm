@@ -1,6 +1,7 @@
 module Msg exposing
     ( AppMode(..)
     , BackendMsg(..)
+    , DeleteEventSafety(..)
     , DeleteLogSafety(..)
     , FrontendMsg(..)
     , TimerCommand(..)
@@ -84,6 +85,7 @@ type FrontendMsg
     | ChangeDuration Log Event
     | MakeEvent
     | DeleteEvent Int Int
+    | SetDeleteEventSafety DeleteEventSafety
     | GotEventDateAfterFilter String
     | GotEventDateBeforeFilter String
     | GetEvents Int
@@ -102,6 +104,11 @@ type FrontendMsg
 type DeleteLogSafety
     = DeleteLogSafetyOn
     | DeleteLogSafetyOff
+
+
+type DeleteEventSafety
+    = DeleteEventSafetyOn
+    | DeleteEventSafetyOff
 
 
 type TimerCommand
