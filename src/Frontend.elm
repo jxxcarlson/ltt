@@ -1010,8 +1010,9 @@ masterLogView model =
             ]
         , column [ spacing 12 ]
             [ row [ spacing 12 ]
-                [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
-                , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
+                [ newLogButton
+                , showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
+                , inputChangeLogName model
                 ]
             , showIf (model.maybeCurrentLog /= Nothing)
                 (row [ spacing 12 ]
@@ -1033,12 +1034,16 @@ editingView model =
             , logEventPanel model
             ]
         , column [ spacing 12 ]
-            [ row [ spacing 12 ]
-                [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
-                , showIf (model.maybeCurrentLog /= Nothing) (inputChangeLogName model)
-                ]
+            [ logControls model
             , deleteLogButton model
             ]
+        ]
+
+
+logControls model =
+    row [ spacing 12 ]
+        [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
+        , inputChangeLogName model
         ]
 
 
