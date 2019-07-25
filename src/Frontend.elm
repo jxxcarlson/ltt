@@ -1612,6 +1612,10 @@ logListPanel model =
 
 viewLogs : Model -> Element FrontendMsg
 viewLogs model =
+    let
+        idx =
+            logIdDisplay model.appMode
+    in
     column [ spacing 12, padding 20, height (px 400) ]
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
@@ -1620,7 +1624,7 @@ viewLogs model =
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
                   , width = px 40
-                  , view = \k log -> el [ Font.size 12 ] (text <| String.fromInt <| k + 1)
+                  , view = \k log -> el [ Font.size 12 ] (text <| idx k log)
                   }
                 , { header = el [ Font.bold ] (text "Name")
                   , width = px 200
@@ -1629,6 +1633,16 @@ viewLogs model =
                 ]
             }
         ]
+
+
+logIdDisplay : AppMode -> Int -> Log -> String
+logIdDisplay mode k log =
+    case mode of
+        Editing ->
+            String.fromInt log.id
+
+        _ ->
+            String.fromInt (k + 1)
 
 
 logNameButton : Maybe Log -> Log -> Element FrontendMsg
