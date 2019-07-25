@@ -29,6 +29,7 @@ type ToBackend
     | SendChangePasswordInfo User.Username String String
     | SendLogToBackend (Maybe User) Log
     | CreateLog (Maybe User) Log
+    | DeleteLog (Maybe User) Log
     | SendChangeLogName (Maybe User) String Log
     | BEDeleteEvent (Maybe User) Log Int
     | GetUserStats
@@ -89,6 +90,7 @@ type FrontendMsg
     | SetGroupFilter EventGrouping
       -- Log
     | MakeNewLog
+    | DeleteCurrentLog
     | GotNewLogName String
     | GotLogFilter String
     | GotChangedLogName String

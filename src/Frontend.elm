@@ -251,7 +251,6 @@ update msg model =
                     , sendToBackend timeoutInMs SentToBackendResult RequestUsers
                     )
 
-        -- sendToBackend timeoutInMs SentToBackendResult (SendUserList model.username model.password) )
         -- BACKEND
         SendUserLogs userId ->
             ( model, Cmd.none )
@@ -464,6 +463,16 @@ update msg model =
                 Just newLog_ ->
                     ( { model | maybeCurrentLog = Just newLog_, logs = newLog_ :: model.logs }
                     , sendToBackend timeoutInMs SentToBackendResult (CreateLog model.currentUser newLog_)
+                    )
+
+        DeleteCurrentLog ->
+            case model.maybeCurrentLog of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just log ->
+                    ( { model | maybeCurrentLog = Nothing }
+                    , sendToBackend timeoutInMs SentToBackendResult (DeleteLog model.currentUser log)
                     )
 
         ChangeLogName ->
@@ -1001,7 +1010,7 @@ masterLogView model =
             , eventListDisplay model
             , eventPanel model
             ]
-        , row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
+        , row [ spacing 12 ] [ deleteLogButton model, newLogButton, inputNewLogName model ]
         ]
 
 
@@ -1010,6 +1019,14 @@ newLogButton =
     Input.button Style.button
         { onPress = Just MakeNewLog
         , label = Element.text "New log"
+        }
+
+
+deleteLogButton : Model -> Element FrontendMsg
+deleteLogButton model =
+    Input.button Style.button
+        { onPress = Just DeleteCurrentLog
+        , label = Element.text "Delete log"
         }
 
 

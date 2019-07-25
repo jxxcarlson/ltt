@@ -147,6 +147,25 @@ updateFromFrontend clientId msg model =
                     , sendToFrontend clientId (SendLogsToFrontend usersLogs)
                     )
 
+        DeleteLog maybeUsername log ->
+            case maybeUsername of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just user ->
+                    let
+                        newUserDict =
+                            UserLog.delete user.username log model.userDict
+
+                        usersLogs =
+                            Dict.get user.username newUserDict
+                                |> Maybe.map .data
+                                |> Maybe.withDefault []
+                    in
+                    ( { model | userDict = newUserDict }
+                    , sendToFrontend clientId (SendLogsToFrontend usersLogs)
+                    )
+
         SendChangeLogName maybeUsername newLogName log ->
             case maybeUsername of
                 Nothing ->

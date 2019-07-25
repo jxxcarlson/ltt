@@ -1,4 +1,4 @@
-module UserLog exposing (UserStats, clean, compile, create, deleteEvent, update)
+module UserLog exposing (UserStats, clean, compile, create, delete, deleteEvent, update)
 
 import Dict exposing (Dict)
 import Log exposing (Log)
@@ -33,6 +33,23 @@ update username log userDict =
             let
                 newLogs =
                     Log.replaceLog log userInfo.data
+
+                newUserInfo =
+                    { userInfo | data = newLogs }
+            in
+            Dict.update username (\x -> Just newUserInfo) userDict
+
+
+delete : Username -> Log -> UserDict Log -> UserDict Log
+delete username log userDict =
+    case Dict.get username userDict of
+        Nothing ->
+            userDict
+
+        Just userInfo ->
+            let
+                newLogs =
+                    List.filter (\lg -> lg.id /= log.id) userInfo.data
 
                 newUserInfo =
                     { userInfo | data = newLogs }
