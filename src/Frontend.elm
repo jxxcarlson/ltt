@@ -893,7 +893,7 @@ changeLogNameButton : Element FrontendMsg
 changeLogNameButton =
     Input.button Style.button
         { onPress = Just ChangeLogName
-        , label = Element.text "Change log name"
+        , label = Element.text "Change name"
         }
 
 
@@ -1009,18 +1009,26 @@ masterLogView model =
             , eventPanel model
             ]
         , column [ spacing 12 ]
-            [ row [ spacing 12 ]
-                [ newLogButton
-                , showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
-                , inputChangeLogName model
+            [ row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
+            , row [ spacing 12 ]
+                [ showIf (model.maybeCurrentLog /= Nothing) (changeLogNameControls model)
+                , showIf (model.maybeCurrentLog /= Nothing) (deleteLogControls model)
                 ]
-            , showIf (model.maybeCurrentLog /= Nothing)
-                (row [ spacing 12 ]
-                    [ deleteLogButton model
-                    , showIf (model.deleteLogSafety == DeleteLogSafetyOff) cancelDeleteLogButton
-                    ]
-                )
             ]
+        ]
+
+
+changeLogNameControls model =
+    row [ spacing 12 ]
+        [ changeLogNameButton
+        , inputChangeLogName model
+        ]
+
+
+deleteLogControls model =
+    row [ spacing 12 ]
+        [ deleteLogButton model
+        , showIf (model.deleteLogSafety == DeleteLogSafetyOff) cancelDeleteLogButton
         ]
 
 
@@ -1444,11 +1452,8 @@ showOne bit str1 str2 =
 
 newLog : Model -> Maybe Log
 newLog model =
-    case model.currentUser of
-        Nothing ->
-            Nothing
-
-        Just user ->
+    case ( model.currentUser, String.length model.newLogName > 0 ) of
+        ( Just user, True ) ->
             Just <|
                 { id = -1
                 , counter = 0
@@ -1457,6 +1462,9 @@ newLog model =
                 , note = ""
                 , data = []
                 }
+
+        _ ->
+            Nothing
 
 
 
