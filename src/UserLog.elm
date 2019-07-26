@@ -66,11 +66,14 @@ clean username userDict =
 
         Just userInfo ->
             let
-                newData =
+                data2 =
                     List.filter (\log -> log.id > 0) userInfo.data
 
+                data3 =
+                    List.filter (\log -> log.name /= "") data2
+
                 newUserInfo =
-                    { userInfo | data = newData }
+                    { userInfo | data = data3 }
             in
             Dict.update username (\x -> Just newUserInfo) userDict
 
