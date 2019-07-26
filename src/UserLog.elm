@@ -67,7 +67,7 @@ clean username userDict =
         Just userInfo ->
             let
                 data2 =
-                    List.filter (\log -> log.id > 0) userInfo.data
+                    List.filter (\log -> log.id > 0 && log.id /= 8) userInfo.data
 
                 data3 =
                     List.filter (\log -> log.name /= "") data2
