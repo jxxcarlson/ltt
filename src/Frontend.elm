@@ -529,10 +529,19 @@ update msg model =
             ( { model | changedLogName = str }, Cmd.none )
 
         ClearFilters ->
+            let
+                maybeCurrentLog =
+                    case model.maybeCurrentLog of
+                        Nothing ->
+                            List.head model.logs
+
+                        Just log ->
+                            Just log
+            in
             ( { model
                 | logFilterString = ""
                 , selectedLogs = model.logs
-                , maybeCurrentLog = List.head model.logs
+                , maybeCurrentLog = maybeCurrentLog
               }
             , Cmd.none
             )
