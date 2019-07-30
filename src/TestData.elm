@@ -39,6 +39,7 @@ e1 =
     , note = "--"
     , duration = TypedTime Minutes 11.4
     , insertedAt = Time.millisToPosix 1563424248000
+    , selected = True
     }
 
 
@@ -48,6 +49,7 @@ e2 =
     , note = "--"
     , duration = TypedTime Minutes 4.1
     , insertedAt = Time.millisToPosix 1563337848000
+    , selected = True
     }
 
 
@@ -57,6 +59,7 @@ f1 =
     , note = "--"
     , duration = TypedTime Minutes 44.1
     , insertedAt = Time.millisToPosix 1563424248000
+    , selected = True
     }
 
 
@@ -66,6 +69,7 @@ f2 =
     , note = "--"
     , duration = TypedTime Minutes 200.1
     , insertedAt = Time.millisToPosix 1563337848000
+    , selected = True
     }
 
 

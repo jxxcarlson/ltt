@@ -13,6 +13,8 @@ module Log exposing
     , insertEvent
     , kDaysAgo
     , replace
+    , select
+    , selectAll
     , total
     , updateEvent
     )
@@ -40,6 +42,7 @@ type alias Event =
     , note : String
     , duration : TypedTime
     , insertedAt : Posix
+    , selected : Bool
     }
 
 
@@ -87,7 +90,34 @@ prefixFilter today prefixParameterString eventList =
 
 filter : String -> List Log -> List Log
 filter filterString logs =
-    List.filter (\log -> String.contains (String.toLower filterString) (String.toLower log.name)) logs
+    let
+        criterion =
+            \log -> String.contains (String.toLower filterString) (String.toLower log.name)
+
+        selector =
+            selectLogBy criterion
+    in
+    List.map selector logs
+
+
+selectLogBy : (Log -> Bool) -> Log -> Log
+selectLogBy f log =
+    case f log of
+        True ->
+            { log | selected = True }
+
+        False ->
+            { log | selected = False }
+
+
+selectEventBy : (Event -> Bool) -> Event -> Event
+selectEventBy f event =
+    case f event of
+        True ->
+            { event | selected = True }
+
+        False ->
+            { event | selected = False }
 
 
 dateSuffixFilter : Posix -> Int -> List Event -> List Event
@@ -95,8 +125,14 @@ dateSuffixFilter today k eventList =
     let
         kDaysAgo_ =
             kDaysAgo k today
+
+        criterion =
+            \event -> posixInterval event.insertedAt kDaysAgo_ >= 0
+
+        selector =
+            selectEventBy criterion
     in
-    List.filter (\event -> posixInterval event.insertedAt kDaysAgo_ >= 0) eventList
+    List.map selector eventList
 
 
 datePrefixFilter : Posix -> Int -> List Event -> List Event
@@ -104,8 +140,14 @@ datePrefixFilter today k eventList =
     let
         kDaysAgo_ =
             kDaysAgo k today
+
+        criterion =
+            \event -> posixInterval kDaysAgo_ event.insertedAt >= -1
+
+        selector =
+            selectEventBy criterion
     in
-    List.filter (\event -> posixInterval kDaysAgo_ event.insertedAt >= -1) eventList
+    List.map selector eventList
 
 
 shiftPosix : Float -> Posix -> Posix
@@ -292,6 +334,7 @@ sumList2 list =
     , note = "--"
     , duration = TypedTime Seconds sum
     , insertedAt = dt
+    , selected = True
     }
 
 
@@ -340,6 +383,7 @@ insertEvent note duration currentTime log =
             , id = log.counter + 1
             , duration = duration
             , insertedAt = currentTime
+            , selected = True
             }
     in
     { log | data = newEvent :: log.data, counter = log.counter + 1 }
@@ -361,3 +405,13 @@ grandTotal : List Log -> TypedTime
 grandTotal logList =
     List.map total logList
         |> TypedTime.sum
+
+
+selectAll : List Log -> List Log
+selectAll logList =
+    List.map (\log -> { log | selected = True }) logList
+
+
+select : Log -> Log
+select log =
+    { log | selected = True }
