@@ -226,7 +226,13 @@ updateFromBackend msg model =
             ( { model | message = str }, Cmd.none )
 
         SendLogsToFrontend newLogList ->
-            ( { model | logs = newLogList, maybeCurrentLog = List.head newLogList }, Cmd.none )
+            ( { model
+                | logs = newLogList
+                , maybeCurrentLog = List.head newLogList
+                , selectedLogs = newLogList
+              }
+            , Cmd.none
+            )
 
         SendUserList userList ->
             ( { model | userList = userList }, Cmd.none )
@@ -401,7 +407,18 @@ update msg model =
             ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
         GotLogFilter str ->
-            ( { model | logFilterString = str }, Cmd.none )
+            let
+                selectedLogs =
+                    Log.filter str model.logs
+            in
+            -- ###
+            ( { model
+                | logFilterString = str
+                , selectedLogs = selectedLogs
+                , maybeCurrentLog = List.head selectedLogs
+              }
+            , Cmd.none
+            )
 
         GotEventDateAfterFilter str ->
             ( { model | eventCameAfterString = str }, Cmd.none )
@@ -466,12 +483,13 @@ update msg model =
                             Log.deleteEvent log eventId
                     in
                     ( { model
-                        | logs = Log.replaceLog changedLog model.logs
+                        | logs = Log.replace changedLog model.logs
                         , maybeCurrentLog = Just changedLog
                       }
                     , sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend model.currentUser changedLog)
                     )
 
+        -- LOG
         MakeNewLog ->
             case newLog model of
                 Nothing ->
@@ -502,13 +520,22 @@ update msg model =
                         changedLog =
                             { log | name = model.changedLogName }
                     in
-                    ( { model | logs = Log.replaceLog changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
+                    ( { model | logs = Log.replace changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
 
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )
 
         GotChangedLogName str ->
             ( { model | changedLogName = str }, Cmd.none )
+
+        ClearFilters ->
+            ( { model
+                | logFilterString = ""
+                , selectedLogs = model.logs
+                , maybeCurrentLog = List.head model.logs
+              }
+            , Cmd.none
+            )
 
         -- TIMER
         TimeChange time ->
@@ -1609,6 +1636,7 @@ filterPanel model =
     row [ spacing 8 ]
         [ el [ Font.bold ] (text "Filter:")
         , inputLogNameFilter model
+        , clearFilters
         , row [ spacing 8 ]
             [ el [ Font.bold, Font.size 14 ] (text "After")
             , displayShiftedDate model.eventCameAfterString model.currentTime
@@ -1622,6 +1650,14 @@ filterPanel model =
 
         --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
+
+
+clearFilters : Element FrontendMsg
+clearFilters =
+    Input.button Style.smallButton
+        { onPress = Just ClearFilters
+        , label = text "Clear filters"
+        }
 
 
 displayShiftedDate : String -> Posix -> Element FrontendMsg
@@ -1692,7 +1728,7 @@ viewLogs model =
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
             [ spacing 4, Font.size 12, height (px 370), width (px 300), scrollbarY ]
-            { data = Log.filter model.logFilterString model.logs
+            { data = model.selectedLogs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
                   , width = px 20
@@ -1797,7 +1833,7 @@ addEvent maybeUser duration currentTime log logList =
             Log.insertEvent "" duration currentTime log
 
         newLogs =
-            Log.replaceLog newLog_ logList
+            Log.replace newLog_ logList
 
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)
@@ -1822,7 +1858,7 @@ changeEvent maybeUser note duration event log logList =
             Log.updateEvent "" duration event log
 
         newLogs =
-            Log.replaceLog newLog_ logList
+            Log.replace newLog_ logList
 
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)

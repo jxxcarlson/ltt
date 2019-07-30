@@ -99,6 +99,7 @@ type FrontendMsg
     | GotLogFilter String
     | GotChangedLogName String
     | ChangeLogName
+    | ClearFilters
 
 
 type DeleteLogSafety

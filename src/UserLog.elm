@@ -33,7 +33,7 @@ update username log userDict =
         Just userInfo ->
             let
                 newLogs =
-                    Log.replaceLog log userInfo.data
+                    Log.replace log userInfo.data
 
                 newUserInfo =
                     { userInfo | data = newLogs }

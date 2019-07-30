@@ -12,7 +12,7 @@ module Log exposing
     , groupingFilter
     , insertEvent
     , kDaysAgo
-    , replaceLog
+    , replace
     , total
     , updateEvent
     )
@@ -312,9 +312,14 @@ sumList list =
 --
 
 
-replaceLog : Log -> List Log -> List Log
-replaceLog log listLogs =
-    LE.setIf (\item -> item.id == log.id) log listLogs
+replace : Log -> List Log -> List Log
+replace log listLogs =
+    case List.member log.id (listLogs |> List.map .id) of
+        True ->
+            LE.setIf (\n -> n.id == log.id) log listLogs
+
+        False ->
+            log :: listLogs
 
 
 deleteEvent : Log -> Int -> Log
