@@ -1499,6 +1499,7 @@ newLog model =
                 , username = user.username
                 , note = ""
                 , data = []
+                , selected = True
                 }
 
         _ ->

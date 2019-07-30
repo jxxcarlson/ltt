@@ -31,6 +31,7 @@ type alias Log =
     , note : String
     , username : Username
     , data : List Event
+    , selected : Bool
     }
 
 

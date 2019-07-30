@@ -76,6 +76,7 @@ log1 =
     , note = "Practice for recital"
     , username = "jxxcarlson"
     , data = [ e1, e2 ]
+    , selected = True
     }
 
 
@@ -86,4 +87,5 @@ log2 =
     , note = "Get ready for conference"
     , username = "jxxcarlson"
     , data = [ f1, f2 ]
+    , selected = True
     }
