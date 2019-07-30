@@ -43,7 +43,7 @@ app =
         , subscriptions = subscriptions
         , view =
             \model ->
-                { title = "Lamdera Alpha"
+                { title = "Lamdera Time Log"
                 , body = [ view model ]
                 }
         }
@@ -112,6 +112,7 @@ type alias Model =
     --, dateFilters : List DateFilter
     -- LOGS
     , logs : List Log
+    , selectedLogs : List Log
     , newLogName : String
     , changedLogName : String
     , maybeCurrentLog : Maybe Log
@@ -164,6 +165,7 @@ initialModel =
 
     -- LOGS
     , logs = []
+    , selectedLogs = []
     , newLogName = ""
     , changedLogName = ""
     , maybeCurrentLog = Nothing
@@ -224,7 +226,7 @@ updateFromBackend msg model =
             ( { model | message = str }, Cmd.none )
 
         SendLogsToFrontend newLogList ->
-            ( { model | logs = newLogList }, Cmd.none )
+            ( { model | logs = newLogList, maybeCurrentLog = List.head newLogList }, Cmd.none )
 
         SendUserList userList ->
             ( { model | userList = userList }, Cmd.none )
