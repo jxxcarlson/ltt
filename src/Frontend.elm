@@ -234,6 +234,15 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
+        SendLogToFrontend log ->
+            ( { model
+                | logs = Log.replace log model.logs
+                , selectedLogs = Log.replace log model.selectedLogs
+                , maybeCurrentLog = Just log
+              }
+            , Cmd.none
+            )
+
         SendUserList userList ->
             ( { model | userList = userList }, Cmd.none )
 
@@ -486,7 +495,7 @@ update msg model =
                         | logs = Log.replace changedLog model.logs
                         , maybeCurrentLog = Just changedLog
                       }
-                    , sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend model.currentUser changedLog)
+                    , sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog model.currentUser changedLog)
                     )
 
         -- LOG
@@ -1845,7 +1854,7 @@ addEvent maybeUser duration currentTime log logList =
             Log.replace newLog_ logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)
+            sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
     { currentLog = newLog_, logList = newLogs, cmd = cmd }
 
@@ -1870,7 +1879,7 @@ changeEvent maybeUser note duration event log logList =
             Log.replace newLog_ logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (SendLogToBackend maybeUser newLog_)
+            sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
     { currentLog = newLog_, logList = newLogs, cmd = cmd }
 

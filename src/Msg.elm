@@ -29,7 +29,7 @@ type ToBackend
     | SendSignInInfo String String
     | SendSignUpInfo String String String
     | SendChangePasswordInfo User.Username String String
-    | SendLogToBackend (Maybe User) Log
+    | BEUpdateLog (Maybe User) Log
     | CreateLog (Maybe User) Log
     | DeleteLog (Maybe User) Log
     | SendChangeLogName (Maybe User) String Log
@@ -44,6 +44,7 @@ type ToFrontend
     | SendValidatedUser (Maybe User)
     | SendUserList (List User)
     | SendUserStats UserStats
+    | SendLogToFrontend Log
 
 
 type BackendMsg

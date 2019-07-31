@@ -120,13 +120,15 @@ updateFromFrontend clientId msg model =
                     in
                     ( model, sendToFrontend clientId (SendLogsToFrontend usersLogs) )
 
-        SendLogToBackend maybeUserName log ->
+        BEUpdateLog maybeUserName log ->
             case maybeUserName of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just user ->
-                    ( { model | userDict = UserLog.update user.username log model.userDict }, Cmd.none )
+                    ( { model | userDict = UserLog.update user.username log model.userDict }
+                    , sendToFrontend clientId (SendLogToFrontend log)
+                    )
 
         CreateLog maybeUsername log ->
             case maybeUsername of
