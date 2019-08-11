@@ -20,7 +20,7 @@ import Graph exposing (Option(..))
 import Html exposing (Html, time)
 import Lamdera.Frontend as Frontend
 import Lamdera.Types exposing (..)
-import Log exposing (DateFilter(..), Event, EventGrouping(..), Log)
+import Log exposing (DateFilter(..), Event, EventGrouping(..), Log, Meta)
 import Msg exposing (AppMode(..), BackendMsg(..), DeleteEventSafety(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
 import Style
 import Task
@@ -111,10 +111,11 @@ type alias Model =
 
     --, dateFilters : List DateFilter
     -- LOGS
-    , logs : List Log
+    , logs : List ( Log, Meta )
+    , grandTotalTime : TypedTime
     , newLogName : String
     , changedLogName : String
-    , maybeCurrentLog : Maybe Log
+    , maybeCurrentLog : Maybe ( Log, Meta )
     , logFilterString : String
     , deleteLogSafety : DeleteLogSafety
 
@@ -164,6 +165,7 @@ initialModel =
 
     -- LOGS
     , logs = []
+    , grandTotalTime = TypedTime.zero
     , newLogName = ""
     , changedLogName = ""
     , maybeCurrentLog = Nothing
@@ -227,6 +229,7 @@ updateFromBackend msg model =
             let
                 logs2 =
                     Log.selectAll newLogList
+                        |> Log.compileMeta
             in
             ( { model
                 | logs = logs2
@@ -236,11 +239,21 @@ updateFromBackend msg model =
             )
 
         SendLogToFrontend log ->
+            let
+                totalTime =
+                    Log.total log
+
+                newGrandTotalTime =
+                    TypedTime.sum [ totalTime, model.grandTotalTime ]
+
+                meta =
+                    { totalTime = totalTime, fractionOfTotal = TypedTime.divideBy newGrandTotalTime totalTime }
+            in
             ( { model
-                | logs = Log.replace log model.logs
+                | logs = Log.replaceWithMeta ( log, meta ) model.logs
 
                 -- , selectedLogs = Log.replace log model.selectedLogs
-                , maybeCurrentLog = Just log
+                , maybeCurrentLog = Just ( log, meta )
               }
             , Cmd.none
             )
@@ -410,10 +423,10 @@ update msg model =
         GotChangedEventDuration str ->
             ( { model | changedEventDurationString = str }, Cmd.none )
 
-        ChangeDuration log event ->
+        ChangeDuration ( log, meta ) event ->
             let
                 r =
-                    changeEventUsingString model.currentUser "" model.changedEventDurationString event log model.logs
+                    changeEventUsingString model.currentUser "" model.changedEventDurationString event ( log, meta ) model.logs
             in
             ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
 
@@ -423,7 +436,7 @@ update msg model =
                     Log.filter str model.logs
 
                 maybeCurrentLog =
-                    List.filter .selected logs2 |> List.head
+                    List.filter (\( log, meta ) -> log.selected) logs2 |> List.head
             in
             -- ###
             ( { model
@@ -446,7 +459,7 @@ update msg model =
         GetEvents logId ->
             let
                 maybeLog =
-                    List.filter (\log -> log.id == logId) model.logs
+                    List.filter (\( log, meta ) -> log.id == logId) model.logs
                         |> List.head
 
                 maybeLogName =
@@ -454,7 +467,7 @@ update msg model =
                         Nothing ->
                             ""
 
-                        Just log ->
+                        Just ( log, meta ) ->
                             log.name
             in
             ( { model
@@ -491,14 +504,14 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just log ->
+                Just logMeta ->
                     let
-                        changedLog =
-                            Log.deleteEvent log eventId
+                        ( changedLog, meta ) =
+                            Log.deleteEventWithMeta logMeta eventId
                     in
                     ( { model
-                        | logs = Log.replace changedLog model.logs
-                        , maybeCurrentLog = Just changedLog
+                        | logs = Log.replaceWithMeta ( changedLog, meta ) model.logs
+                        , maybeCurrentLog = Just ( changedLog, meta )
                       }
                     , sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog model.currentUser changedLog)
                     )
@@ -510,7 +523,11 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just newLog_ ->
-                    ( { model | maybeCurrentLog = Just newLog_, logs = newLog_ :: model.logs }
+                    let
+                        newLogMeta =
+                            ( newLog_, Log.initialMeta )
+                    in
+                    ( { model | maybeCurrentLog = Just newLogMeta, logs = newLogMeta :: model.logs }
                     , sendToBackend timeoutInMs SentToBackendResult (CreateLog model.currentUser newLog_)
                     )
 
@@ -519,7 +536,7 @@ update msg model =
                 Nothing ->
                     ( { model | deleteLogSafety = DeleteLogSafetyOn }, Cmd.none )
 
-                Just log ->
+                Just ( log, meta ) ->
                     ( { model | maybeCurrentLog = Nothing, deleteLogSafety = DeleteLogSafetyOn }
                     , sendToBackend timeoutInMs SentToBackendResult (DeleteLog model.currentUser log)
                     )
@@ -529,12 +546,12 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just log ->
+                Just ( log, meta ) ->
                     let
                         changedLog =
                             { log | name = model.changedLogName }
                     in
-                    ( { model | logs = Log.replace changedLog model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
+                    ( { model | logs = Log.replaceWithMeta ( changedLog, meta ) model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
 
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )
@@ -554,7 +571,7 @@ update msg model =
             in
             ( { model
                 | logFilterString = ""
-                , logs = Log.selectAll model.logs
+                , logs = Log.selectAllWithMeta model.logs
                 , maybeCurrentLog = Maybe.map Log.select maybeCurrentLog
               }
             , Cmd.none
@@ -895,9 +912,9 @@ signOutButton model =
 
 changeDurationButton model =
     case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
-        ( Just log, Just event ) ->
+        ( Just logMeta, Just event ) ->
             Input.button Style.button
-                { onPress = Just (ChangeDuration log event)
+                { onPress = Just (ChangeDuration logMeta event)
                 , label = Element.text "Change duration"
                 }
 
@@ -1163,8 +1180,11 @@ viewLog model =
                 [ el [ Font.size 16, Font.bold ] (text "No events available")
                 ]
 
-        Just currentLog ->
+        Just currentLogMeta ->
             let
+                currentLog =
+                    Tuple.first currentLogMeta
+
                 today =
                     model.currentTime
 
@@ -1192,7 +1212,7 @@ viewLog model =
                     TypedTime.multiply (1.0 / nEvents) eventSum_
             in
             column [ spacing 12, padding 20, height (px 430) ]
-                [ el [ Font.size 16, Font.bold ] (text (Maybe.map .name model.maybeCurrentLog |> Maybe.withDefault "XXX"))
+                [ el [ Font.size 16, Font.bold ] (text (Maybe.map .name (Just currentLog) |> Maybe.withDefault "XXX"))
                 , indexedTable [ spacing 4, Font.size 12, height (px 400), scrollbarY ]
                     { data = events
                     , columns =
@@ -1246,8 +1266,11 @@ eventPanel model =
         Nothing ->
             Element.none
 
-        Just currentLog ->
+        Just currentLogMeta ->
             let
+                currentLog =
+                    Tuple.first currentLogMeta
+
                 events2 =
                     Log.bigDateFilter model.currentTime model.eventCameBeforeString model.eventCameAfterString currentLog.data
 
@@ -1278,12 +1301,14 @@ logEventPanel model =
             column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
                 [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
                 , column [ spacing 12 ]
-                    [ inputChangeEventDuration model
-                    , changeDurationButton model
+                    [--inputChangeEventDuration model
+                     --, changeDurationButton model
                     ]
                 , row [ spacing 12 ]
-                    [ deleteEventButton model
-                    , showIf (model.deleteEventSafety == DeleteEventSafetyOff) cancelDeleteEventButton
+                    [ --deleteEventButton model
+                      showIf
+                        (model.deleteEventSafety == DeleteEventSafetyOff)
+                        cancelDeleteEventButton
                     ]
                 ]
 
@@ -1739,7 +1764,7 @@ viewLogs model =
             logIdDisplay model.appMode
 
         grandTotal =
-            Log.grandTotal model.logs
+            model.grandTotalTime
 
         fraction : Log -> String
         fraction log =
@@ -1752,26 +1777,27 @@ viewLogs model =
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
             [ spacing 4, Font.size 12, height (px 370), width (px 300), scrollbarY ]
-            { data = List.filter (\log -> log.selected) model.logs
+            { data = List.filter (\( log, meta ) -> log.selected) model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
                   , width = px 20
-                  , view = \k log -> el [ Font.size 12 ] (text <| idx k log)
+                  , view = \k ( log, meta ) -> el [ Font.size 12 ] (text <| idx k log)
                   }
                 , { header = el [ Font.bold ] (text "Name")
                   , width = px 170
-                  , view = \k log -> el [ Font.size 12 ] (logNameButton model.maybeCurrentLog log)
+                  , view = \k ( log, meta ) -> el [ Font.size 12 ] (logNameButton (Maybe.map Tuple.first model.maybeCurrentLog) log)
                   }
                 , { header = el [ Font.bold ] (text "Total")
                   , width = px 60
-                  , view = \k log -> el [ Font.size 12 ] (text <| timeAsStringWithUnit Minutes <| Log.total log)
+                  , view = \k ( log, meta ) -> el [ Font.size 12 ] (text <| timeAsStringWithUnit Minutes <| meta.totalTime)
                   }
                 , { header = el [ Font.bold ] (text "pc")
                   , width = px 60
-                  , view = \k log -> row [ width (px 90) ] [ el [ Font.size 12 ] (text <| fraction log) ]
+                  , view = \k ( log, meta ) -> row [ width (px 90) ] [ el [ Font.size 12 ] (text <| String.fromFloat <| Utility.roundTo 1 <| 100 * meta.fractionOfTotal) ]
                   }
                 ]
             }
+        , row [ width fill ] [ el [ alignRight, Font.size 14 ] (text <| "pc: " ++ (String.fromFloat <| Utility.roundTo 1 <| 100 * Log.totalFractionOfSelected model.logs)) ]
         ]
 
 
@@ -1834,60 +1860,63 @@ setCurrentEventButton model event index =
 
 
 type alias UpdateLogRecord =
-    { currentLog : Log
-    , logList : List Log
+    { currentLog : ( Log, Meta )
+    , logList : List ( Log, Meta )
     , cmd : Cmd FrontendMsg
     }
 
 
-addEventUsingString : Maybe User -> String -> Posix -> Log -> List Log -> UpdateLogRecord
-addEventUsingString maybeUser eventDurationString currentTime log logList =
+addEventUsingString : Maybe User -> String -> Posix -> ( Log, Meta ) -> List ( Log, Meta ) -> UpdateLogRecord
+addEventUsingString maybeUser eventDurationString currentTime ( log, meta ) logList =
     case TypedTime.decodeHM eventDurationString of
         Nothing ->
-            { currentLog = log, logList = logList, cmd = Cmd.none }
+            { currentLog = ( log, meta ), logList = logList, cmd = Cmd.none }
 
         Just duration ->
-            addEvent maybeUser (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime log logList
+            addEvent maybeUser (TypedTime.convertFromSecondsWithUnit Seconds duration) currentTime ( log, meta ) logList
 
 
-addEvent : Maybe User -> TypedTime -> Posix -> Log -> List Log -> UpdateLogRecord
-addEvent maybeUser duration currentTime log logList =
+addEvent : Maybe User -> TypedTime -> Posix -> ( Log, Meta ) -> List ( Log, Meta ) -> UpdateLogRecord
+addEvent maybeUser duration currentTime ( log, meta ) logList =
     let
         newLog_ =
             Log.insertEvent "" duration currentTime log
 
+        newMeta =
+            { meta | totalTime = TypedTime.sum [ meta.totalTime, duration ] }
+
         newLogs =
-            Log.replace newLog_ logList
+            Log.replaceWithMeta ( newLog_, newMeta ) logList
 
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
-    { currentLog = newLog_, logList = newLogs, cmd = cmd }
+    { currentLog = ( newLog_, newMeta ), logList = newLogs, cmd = cmd }
 
 
-changeEventUsingString : Maybe User -> String -> String -> Event -> Log -> List Log -> UpdateLogRecord
-changeEventUsingString maybeUser note eventDurationString event log logList =
+changeEventUsingString : Maybe User -> String -> String -> Event -> ( Log, Meta ) -> List ( Log, Meta ) -> UpdateLogRecord
+changeEventUsingString maybeUser note eventDurationString event logMeta logList =
     case TypedTime.decodeHM eventDurationString of
         Just duration ->
-            changeEvent maybeUser note (TypedTime.convertFromSecondsWithUnit Seconds duration) event log logList
+            changeEvent maybeUser note (TypedTime.convertFromSecondsWithUnit Seconds duration) event logMeta logList
 
         Nothing ->
-            { currentLog = log, logList = logList, cmd = Cmd.none }
+            { currentLog = logMeta, logList = logList, cmd = Cmd.none }
 
 
-changeEvent : Maybe User -> String -> TypedTime -> Event -> Log -> List Log -> UpdateLogRecord
-changeEvent maybeUser note duration event log logList =
+changeEvent : Maybe User -> String -> TypedTime -> Event -> ( Log, Meta ) -> List ( Log, Meta ) -> UpdateLogRecord
+changeEvent maybeUser note duration event ( log, meta ) logList =
     let
         newLog_ =
             Log.updateEvent "" duration event log
 
         newLogs =
-            Log.replace newLog_ logList
+            Log.replaceWithMeta ( newLog_, meta ) logList
 
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
-    { currentLog = newLog_, logList = newLogs, cmd = cmd }
+    { currentLog = ( newLog_, meta ), logList = newLogs, cmd = cmd }
 
 
 

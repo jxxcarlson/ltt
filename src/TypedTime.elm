@@ -17,6 +17,7 @@ module TypedTime exposing
     , multiply
     , sum
     , timeAsStringWithUnit
+    , zero
     )
 
 {-|
@@ -39,6 +40,10 @@ type Unit
     = Seconds
     | Minutes
     | Hours
+
+
+zero =
+    TypedTime Seconds 0
 
 
 sum : List TypedTime -> TypedTime

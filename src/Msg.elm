@@ -12,7 +12,7 @@ module Msg exposing
 
 import Browser exposing (UrlRequest(..))
 import Lamdera.Types exposing (ClientId, WsError)
-import Log exposing (Event, EventGrouping(..), Log)
+import Log exposing (Event, EventGrouping(..), Log, Meta)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
@@ -83,7 +83,7 @@ type FrontendMsg
     | GotValueString String
       -- Event
     | GotChangedEventDuration String
-    | ChangeDuration Log Event
+    | ChangeDuration ( Log, Meta ) Event
     | MakeEvent
     | DeleteEvent Int Int
     | SetDeleteEventSafety DeleteEventSafety

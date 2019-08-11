@@ -3,19 +3,27 @@ module Log exposing
     , Event
     , EventGrouping(..)
     , Log
+    , Meta
     , bigDateFilter
+    , compileMeta
     , deleteEvent
+    , deleteEventWithMeta
     , eventSum
     , eventsByDay
     , filter
     , grandTotal
     , groupingFilter
+    , initialMeta
     , insertEvent
     , kDaysAgo
     , replace
+    , replaceWithMeta
     , select
     , selectAll
+    , selectAllWithMeta
     , total
+    , totalFraction
+    , totalFractionOfSelected
     , updateEvent
     )
 
@@ -34,6 +42,12 @@ type alias Log =
     , username : Username
     , data : List Event
     , selected : Bool
+    }
+
+
+type alias Meta =
+    { totalTime : TypedTime
+    , fractionOfTotal : Float
     }
 
 
@@ -88,7 +102,7 @@ prefixFilter today prefixParameterString eventList =
             datePrefixFilter today k eventList
 
 
-filter : String -> List Log -> List Log
+filter : String -> List ( Log, Meta ) -> List ( Log, Meta )
 filter filterString logs =
     let
         criterion =
@@ -100,14 +114,14 @@ filter filterString logs =
     List.map selector logs
 
 
-selectLogBy : (Log -> Bool) -> Log -> Log
-selectLogBy f log =
+selectLogBy : (Log -> Bool) -> ( Log, Meta ) -> ( Log, Meta )
+selectLogBy f ( log, meta ) =
     case f log of
         True ->
-            { log | selected = True }
+            ( { log | selected = True }, meta )
 
         False ->
-            { log | selected = False }
+            ( { log | selected = False }, meta )
 
 
 selectEventBy : (Event -> Bool) -> Event -> Event
@@ -248,6 +262,21 @@ total log =
         |> TypedTime.sum
 
 
+totalFraction : List ( Log, Meta ) -> Float
+totalFraction listLogMeta =
+    listLogMeta
+        |> List.map (Tuple.second >> .fractionOfTotal)
+        |> List.sum
+
+
+totalFractionOfSelected : List ( Log, Meta ) -> Float
+totalFractionOfSelected listLogMeta =
+    listLogMeta
+        |> List.filter (\( log, meta ) -> log.selected)
+        |> List.map (Tuple.second >> .fractionOfTotal)
+        |> List.sum
+
+
 timeSeries : List Event -> List ( Posix, Float )
 timeSeries eventList =
     eventList
@@ -366,6 +395,16 @@ replace log listLogs =
             log :: listLogs
 
 
+replaceWithMeta : ( Log, Meta ) -> List ( Log, Meta ) -> List ( Log, Meta )
+replaceWithMeta ( log, meta ) listLogs =
+    case List.member log.id (listLogs |> List.map (Tuple.first >> .id)) of
+        True ->
+            LE.setIf (\( n, meta_ ) -> n.id == log.id) ( log, meta ) listLogs
+
+        False ->
+            ( log, meta ) :: listLogs
+
+
 deleteEvent : Log -> Int -> Log
 deleteEvent log eventId =
     let
@@ -373,6 +412,21 @@ deleteEvent log eventId =
             List.filter (\event -> event.id /= eventId) log.data
     in
     { log | data = newData }
+
+
+deleteEventWithMeta : ( Log, Meta ) -> Int -> ( Log, Meta )
+deleteEventWithMeta ( log, meta ) eventId =
+    let
+        newData =
+            List.filter (\event -> event.id /= eventId) log.data
+
+        newLog =
+            { log | data = newData }
+
+        newMeta =
+            { meta | totalTime = total newLog }
+    in
+    ( newLog, newMeta )
 
 
 insertEvent : String -> TypedTime -> Posix -> Log -> Log
@@ -407,11 +461,38 @@ grandTotal logList =
         |> TypedTime.sum
 
 
+selectAllWithMeta : List ( Log, Meta ) -> List ( Log, Meta )
+selectAllWithMeta logList =
+    List.map (\( log, meta ) -> ( { log | selected = True }, meta )) logList
+
+
 selectAll : List Log -> List Log
 selectAll logList =
     List.map (\log -> { log | selected = True }) logList
 
 
-select : Log -> Log
-select log =
-    { log | selected = True }
+select : ( Log, Meta ) -> ( Log, Meta )
+select ( log, meta ) =
+    ( { log | selected = True }, meta )
+
+
+
+-- META --
+
+
+initialMeta =
+    { totalTime = TypedTime.zero, fractionOfTotal = 0 }
+
+
+compileMeta : List Log -> List ( Log, Meta )
+compileMeta logList =
+    let
+        logList2 =
+            List.map (\log -> ( log, { initialMeta | totalTime = total log } )) logList
+
+        grandTotalTime =
+            logList2
+                |> List.map (\( log, meta ) -> meta.totalTime)
+                |> TypedTime.sum
+    in
+    List.map (\( log, meta ) -> ( log, { meta | fractionOfTotal = TypedTime.divideBy grandTotalTime meta.totalTime } )) logList2
