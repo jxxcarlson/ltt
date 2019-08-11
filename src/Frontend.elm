@@ -112,7 +112,6 @@ type alias Model =
     --, dateFilters : List DateFilter
     -- LOGS
     , logs : List Log
-    , selectedLogs : List Log
     , newLogName : String
     , changedLogName : String
     , maybeCurrentLog : Maybe Log
@@ -165,7 +164,6 @@ initialModel =
 
     -- LOGS
     , logs = []
-    , selectedLogs = []
     , newLogName = ""
     , changedLogName = ""
     , maybeCurrentLog = Nothing
@@ -226,10 +224,13 @@ updateFromBackend msg model =
             ( { model | message = str }, Cmd.none )
 
         SendLogsToFrontend newLogList ->
+            let
+                logs2 =
+                    Log.selectAll newLogList
+            in
             ( { model
-                | logs = newLogList
-                , maybeCurrentLog = List.head newLogList
-                , selectedLogs = newLogList
+                | logs = logs2
+                , maybeCurrentLog = List.head logs2
               }
             , Cmd.none
             )
@@ -417,14 +418,17 @@ update msg model =
 
         GotLogFilter str ->
             let
-                selectedLogs =
+                logs2 =
                     Log.filter str model.logs
+
+                maybeCurrentLog =
+                    List.filter .selected logs2 |> List.head
             in
             -- ###
             ( { model
                 | logFilterString = str
-                , selectedLogs = selectedLogs
-                , maybeCurrentLog = List.head selectedLogs
+                , logs = logs2
+                , maybeCurrentLog = maybeCurrentLog
               }
             , Cmd.none
             )
@@ -549,8 +553,8 @@ update msg model =
             in
             ( { model
                 | logFilterString = ""
-                , selectedLogs = model.logs
-                , maybeCurrentLog = maybeCurrentLog
+                , logs = Log.selectAll model.logs
+                , maybeCurrentLog = Maybe.map Log.select maybeCurrentLog
               }
             , Cmd.none
             )
@@ -1508,6 +1512,7 @@ newLog model =
                 , username = user.username
                 , note = ""
                 , data = []
+                , selected = True
                 }
 
         _ ->
@@ -1746,7 +1751,7 @@ viewLogs model =
         [ el [ Font.size 16, Font.bold ] (text "Logs")
         , indexedTable
             [ spacing 4, Font.size 12, height (px 370), width (px 300), scrollbarY ]
-            { data = model.selectedLogs
+            { data = List.filter (\log -> log.selected) model.logs
             , columns =
                 [ { header = el [ Font.bold ] (text "k")
                   , width = px 20
