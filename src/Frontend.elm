@@ -1793,11 +1793,11 @@ viewLogs model =
                   }
                 , { header = el [ Font.bold ] (text "pc")
                   , width = px 60
-                  , view = \k ( log, meta ) -> row [ width (px 90) ] [ el [ Font.size 12 ] (text <| String.fromFloat <| Utility.roundTo 1 <| 100 * meta.fractionOfTotal) ]
+                  , view = \k ( log, meta ) -> row [ width (px 90) ] [ el [ Font.size 12 ] (text <| String.fromFloat <| Utility.roundTo 0 <| 100 * meta.fractionOfTotal) ]
                   }
                 ]
             }
-        , row [ width fill ] [ el [ alignRight, Font.size 14 ] (text <| "pc: " ++ (String.fromFloat <| Utility.roundTo 1 <| 100 * Log.totalFractionOfSelected model.logs)) ]
+        , row [ width fill ] [ el [ alignRight, Font.size 14 ] (text <| "pc: " ++ (String.fromFloat <| Utility.roundTo 0 <| 100 * Log.totalFractionOfSelected model.logs)) ]
         ]
 
 
