@@ -238,7 +238,8 @@ updateFromBackend msg model =
         SendLogToFrontend log ->
             ( { model
                 | logs = Log.replace log model.logs
-                , selectedLogs = Log.replace log model.selectedLogs
+
+                -- , selectedLogs = Log.replace log model.selectedLogs
                 , maybeCurrentLog = Just log
               }
             , Cmd.none
