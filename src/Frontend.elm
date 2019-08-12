@@ -250,7 +250,7 @@ updateFromBackend msg model =
                     { totalTime = totalTime, fractionOfTotal = TypedTime.divideBy newGrandTotalTime totalTime }
             in
             ( { model
-                | logs = Log.replaceWithMeta ( log, meta ) model.logs
+                | logs = Log.replaceWithMeta ( log, Log.initialMeta ) model.logs |> Log.recompileMeta
 
                 -- , selectedLogs = Log.replace log model.selectedLogs
                 , maybeCurrentLog = Just ( log, meta )
@@ -1916,7 +1916,8 @@ changeEvent maybeUser note duration event ( log, meta ) logList =
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
-    { currentLog = ( newLog_, meta ), logList = Log.recompileMeta newLogs, cmd = cmd }
+    -- xxx
+    { currentLog = ( newLog_, meta ), logList = newLogs, cmd = cmd }
 
 
 
