@@ -83,7 +83,9 @@ type FrontendMsg
     | GotValueString String
       -- Event
     | GotChangedEventDuration String
+    | GotChangedEventDate String
     | ChangeDuration ( Log, Meta ) Event
+    | ChangeEventDate ( Log, Meta ) Event
     | MakeEvent
     | DeleteEvent Int Int
     | SetDeleteEventSafety DeleteEventSafety

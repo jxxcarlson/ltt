@@ -102,6 +102,7 @@ type alias Model =
 
     -- EVENTS
     , changedEventDurationString : String
+    , changedEventDateString : String
     , deleteEventSafety : DeleteEventSafety
     , eventDurationString : String
     , eventCameBeforeString : String
@@ -158,6 +159,7 @@ initialModel =
 
     -- EVENT
     , changedEventDurationString = ""
+    , changedEventDateString = ""
     , eventDurationString = ""
     , deleteEventSafety = DeleteEventSafetyOn
     , eventCameBeforeString = ""
@@ -423,12 +425,22 @@ update msg model =
         GotChangedEventDuration str ->
             ( { model | changedEventDurationString = str }, Cmd.none )
 
+        GotChangedEventDate str ->
+            ( { model | changedEventDateString = str }, Cmd.none )
+
         ChangeDuration ( log, meta ) event ->
             let
                 r =
                     changeEventUsingString model.currentUser "" model.changedEventDurationString event ( log, meta ) model.logs
             in
             ( { model | logs = r.logList, maybeCurrentLog = Just r.currentLog }, r.cmd )
+
+        ChangeEventDate ( log, meta ) event ->
+            let
+                a =
+                    model.changedEventDateString
+            in
+            ( model, Cmd.none )
 
         GotLogFilter str ->
             let
@@ -923,7 +935,19 @@ changeDurationButton model =
         ( Just logMeta, Just event ) ->
             Input.button Style.button
                 { onPress = Just (ChangeDuration logMeta event)
-                , label = Element.text "Change duration"
+                , label = Element.text "Change"
+                }
+
+        _ ->
+            Element.none
+
+
+changeDateButton model =
+    case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
+        ( Just logMeta, Just event ) ->
+            Input.button Style.button
+                { onPress = Just (ChangeEventDate logMeta event)
+                , label = Element.text "Change"
                 }
 
         _ ->
@@ -935,7 +959,16 @@ inputChangeEventDuration model =
         { onChange = GotChangedEventDuration
         , text = model.changedEventDurationString
         , placeholder = Nothing
-        , label = Input.labelLeft [ Font.size 14, moveDown 8 ] (text "Duration: ")
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 60) ] (text "Duration: ")
+        }
+
+
+inputChangeEventDate model =
+    Input.text (Style.inputStyle 60)
+        { onChange = GotChangedEventDate
+        , text = model.changedEventDateString
+        , placeholder = Nothing
+        , label = Input.labelLeft [ Font.size 14, moveDown 8, width (px 60) ] (text "Date: ")
         }
 
 
@@ -1308,12 +1341,11 @@ logEventPanel model =
             Element.none
 
         Just evt ->
-            column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
+            column [ width (px 250), height (px 450), padding 12, Border.width 1, spacing 36 ]
                 [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
-                , column [ spacing 12 ]
-                    [ inputChangeEventDuration model
-                    , changeDurationButton model
-                    ]
+                , row [ spacing 12 ]
+                    [ inputChangeEventDuration model, changeDurationButton model ]
+                , row [ spacing 12 ] [ inputChangeEventDate model, changeDateButton model ]
                 , row [ spacing 12 ]
                     [ deleteEventButton model
                     , showIf

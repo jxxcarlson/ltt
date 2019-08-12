@@ -9,6 +9,9 @@ module XDateTime exposing
     , naiveDateTimeFromPosix
     , naiveDateTimeValue
     , naiveTimeStringFromPosix
+    , parseStringToDateRecord
+    , posixFromDate
+    , posixFromJulianDay
     , rataDieFromPosix
     , timeStringOfDateTimeString
     , toUtcDateString
@@ -18,6 +21,8 @@ module XDateTime exposing
 -- import Date exposing (Date, Unit(..), diff)
 -- import Svg.Attributes exposing (targetY)
 
+import List.Extra
+import Maybe.Extra
 import Time exposing (Posix)
 
 
@@ -49,8 +54,24 @@ type alias JulianDay =
     Float
 
 
+type alias YearInt =
+    Int
+
+
+type alias MonthInt =
+    Int
+
+
+type alias DayInt =
+    Int
+
+
 type alias RataDie =
     Int
+
+
+type alias UnixSeconds =
+    Float
 
 
 type alias TR =
@@ -307,25 +328,34 @@ julianDayFromPosix : Posix -> JulianDay
 julianDayFromPosix posix =
     let
         y =
-            Debug.log "y" <|
-                (Time.toYear Time.utc posix
-                    |> toFloat
-                )
+            Time.toYear Time.utc posix
+                |> toFloat
 
         m =
-            Debug.log "m" <|
-                (Time.toMonth Time.utc posix
-                    |> monthToInt
-                    |> toFloat
-                )
+            Time.toMonth Time.utc posix
+                |> monthToInt
+                |> toFloat
 
         d =
-            Debug.log "d" <|
-                (Time.toDay Time.utc posix
-                    |> toFloat
-                )
+            Time.toDay Time.utc posix
+                |> toFloat
     in
     (1461 * (y + 4800 + (m - 14) / 12)) / 4 + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12 - (3 * ((y + 4900 + (m - 14) / 12) / 100)) / 4 + d - 32075
+
+
+unixSecondsFromJulianDay : JulianDay -> UnixSeconds
+unixSecondsFromJulianDay jd =
+    86400.0 * (jd - 2440587.5)
+
+
+posixFromJulianDay : JulianDay -> Posix
+posixFromJulianDay jd =
+    Time.millisToPosix (round (1000.0 * unixSecondsFromJulianDay jd))
+
+
+posixFromDate : YearInt -> MonthInt -> DayInt -> Posix
+posixFromDate year month day =
+    julianDayFromDate year month day |> posixFromJulianDay
 
 
 
@@ -339,7 +369,7 @@ rataDieFromPosix posix =
     floor (julianDayFromPosix posix - 1721424.5)
 
 
-julianDayFromDate : Int -> Int -> Int -> JulianDay
+julianDayFromDate : YearInt -> MonthInt -> DayInt -> JulianDay
 julianDayFromDate year month day =
     let
         y =
@@ -352,3 +382,36 @@ julianDayFromDate year month day =
             toFloat day
     in
     (1461 * (y + 4800 + (m - 14) / 12)) / 4 + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12 - (3 * ((y + 4900 + (m - 14) / 12) / 100)) / 4 + d - 32075
+
+
+type alias DateRecord =
+    { monthInt : MonthInt
+    , dayInt : DayInt
+    , yearInt : YearInt
+    }
+
+
+{-| parseStringToDateRecord "2019/8/31" == { yearInt = 2019, monthInt = 8, dayInt = 31}
+-}
+parseStringToDateRecord : String -> Maybe DateRecord
+parseStringToDateRecord str =
+    let
+        dateElements =
+            String.split "/" str
+                |> List.map String.trim
+                |> List.map String.toInt
+                |> Maybe.Extra.values
+
+        element k list =
+            List.Extra.getAt k list |> Maybe.withDefault 0
+    in
+    case List.length dateElements == 3 of
+        False ->
+            Nothing
+
+        True ->
+            Just
+                { yearInt = element 0 dateElements
+                , monthInt = element 1 dateElements
+                , dayInt = element 2 dateElements
+                }
