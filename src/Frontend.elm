@@ -933,7 +933,7 @@ inputChangeEventDuration model =
 
 deleteEventButton model =
     case ( model.maybeCurrentLog, model.maybeCurrentEvent ) of
-        ( Just lg, Just evt ) ->
+        ( Just ( lg, evt_ ), Just evt ) ->
             case model.deleteEventSafety of
                 DeleteEventSafetyOff ->
                     Input.button Style.dangerousButton
@@ -1301,12 +1301,12 @@ logEventPanel model =
             column [ width (px 300), height (px 450), padding 12, Border.width 1, spacing 36 ]
                 [ el [ Font.bold ] (text <| "Edit event " ++ String.fromInt evt.id)
                 , column [ spacing 12 ]
-                    [--inputChangeEventDuration model
-                     --, changeDurationButton model
+                    [ inputChangeEventDuration model
+                    , changeDurationButton model
                     ]
                 , row [ spacing 12 ]
-                    [ --deleteEventButton model
-                      showIf
+                    [ deleteEventButton model
+                    , showIf
                         (model.deleteEventSafety == DeleteEventSafetyOff)
                         cancelDeleteEventButton
                     ]
