@@ -25,6 +25,7 @@ module Log exposing
     , total
     , totalFraction
     , totalFractionOfSelected
+    , totalHoursOfSelected
     , updateEvent
     )
 
@@ -276,6 +277,14 @@ totalFractionOfSelected listLogMeta =
         |> List.filter (\( log, meta ) -> log.selected)
         |> List.map (Tuple.second >> .fractionOfTotal)
         |> List.sum
+
+
+totalHoursOfSelected : List ( Log, Meta ) -> TypedTime
+totalHoursOfSelected listLogMeta =
+    listLogMeta
+        |> List.filter (\( log, meta ) -> log.selected)
+        |> List.map (Tuple.second >> .totalTime)
+        |> TypedTime.sum
 
 
 timeSeries : List Event -> List ( Posix, Float )

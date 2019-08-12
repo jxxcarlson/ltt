@@ -1797,8 +1797,31 @@ viewLogs model =
                   }
                 ]
             }
-        , row [ width fill ] [ el [ alignRight, Font.size 14 ] (text <| "pc: " ++ (String.fromFloat <| Utility.roundTo 0 <| 100 * Log.totalFractionOfSelected model.logs)) ]
+        , row [ width fill, spacing 8 ] [ hoursDisplay model, percentageDisplay model ]
         ]
+
+
+percentageDisplay model =
+    el [ alignRight, Font.size 14 ]
+        (text <|
+            "pc: "
+                ++ (String.fromFloat <|
+                        Utility.roundTo 0 <|
+                            100
+                                * Log.totalFractionOfSelected model.logs
+                   )
+        )
+
+
+hoursDisplay model =
+    -- xxx
+    el [ alignRight, Font.size 14 ]
+        (text <|
+            "hours: "
+                ++ (timeAsStringWithUnit Minutes <|
+                        Log.totalHoursOfSelected model.logs
+                   )
+        )
 
 
 logIdDisplay : AppMode -> Int -> Log -> String
@@ -1916,7 +1939,6 @@ changeEvent maybeUser note duration event ( log, meta ) logList =
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
-    -- xxx
     { currentLog = ( newLog_, meta ), logList = newLogs, cmd = cmd }
 
 
