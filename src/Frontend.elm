@@ -9,7 +9,6 @@ module Frontend exposing (Model, app)
 import Array exposing (map)
 import Browser exposing (UrlRequest(..))
 import Browser.Dom as Dom
-import DateTime
 import Dict
 import Element exposing (..)
 import Element.Background as Background
@@ -31,6 +30,7 @@ import Url exposing (Url)
 import User exposing (User, Username)
 import UserLog exposing (UserStats)
 import Utility
+import XDateTime
 
 
 app =
@@ -1233,11 +1233,11 @@ viewLog model =
                           , width = px 80
 
                           --, view = \k event -> el [ Font.size 12 ] (text <| dateStringOfDateTimeString <| (\(NaiveDateTime str) -> str) <| event.insertedAt)
-                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.humanDateStringFromPosix <| event.insertedAt)
+                          , view = \k event -> el [ Font.size 12 ] (text <| XDateTime.humanDateStringFromPosix <| event.insertedAt)
                           }
                         , { header = el [ Font.bold ] (text "Time")
                           , width = px 80
-                          , view = \k event -> el [ Font.size 12 ] (text <| DateTime.naiveTimeStringFromPosix <| event.insertedAt)
+                          , view = \k event -> el [ Font.size 12 ] (text <| XDateTime.naiveTimeStringFromPosix <| event.insertedAt)
                           }
                         , { header = el [ Font.bold ] (text "Duration")
                           , width = px 40
@@ -1739,7 +1739,7 @@ displayShiftedDate kDaysAgoString today =
                 shiftedDate =
                     Log.kDaysAgo k today
             in
-            el [ width (px 75), Font.bold, Font.size 14 ] (text <| DateTime.humanDateStringFromPosix shiftedDate)
+            el [ width (px 75), Font.bold, Font.size 14 ] (text <| XDateTime.humanDateStringFromPosix shiftedDate)
 
 
 inputLogNameFilter model =

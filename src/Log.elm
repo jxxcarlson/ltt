@@ -29,11 +29,11 @@ module Log exposing
     , updateEvent
     )
 
-import DateTime exposing (NaiveDateTime(..))
 import List.Extra as LE
 import Time exposing (Posix)
 import TypedTime exposing (TypedTime(..), Unit(..))
 import User exposing (Username)
+import XDateTime exposing (NaiveDateTime(..))
 
 
 type alias Log =
@@ -248,7 +248,7 @@ timeSeriesRD listOfPairs =
 
 augmentPair : ( Posix, Float ) -> ( Int, ( Posix, Float ) )
 augmentPair ( p, f ) =
-    ( DateTime.rataDieFromPosix p, ( p, f ) )
+    ( XDateTime.rataDieFromPosix p, ( p, f ) )
 
 
 
