@@ -3,13 +3,16 @@ module XDateTime exposing
     , dateStringOfDateTimeString
     , humanDateStringFromPosix
     , isoStringFromNaiveDateTime
-    , julianDayNumber
+    , julianDayFromDate
+    , julianDayFromPosix
     , naiveDateStringFromPosix
     , naiveDateTimeFromPosix
     , naiveDateTimeValue
     , naiveTimeStringFromPosix
     , rataDieFromPosix
     , timeStringOfDateTimeString
+    , toUtcDateString
+    , toUtcString
     )
 
 -- import Date exposing (Date, Unit(..), diff)
@@ -18,8 +21,36 @@ module XDateTime exposing
 import Time exposing (Posix)
 
 
+toUtcString : Posix -> String
+toUtcString time =
+    String.fromInt (Time.toHour Time.utc time)
+        ++ ":"
+        ++ String.fromInt (Time.toMinute Time.utc time)
+        ++ ":"
+        ++ String.fromInt (Time.toSecond Time.utc time)
+        ++ " (UTC)"
+
+
+toUtcDateString : Posix -> String
+toUtcDateString time =
+    String.fromInt (Time.toYear Time.utc time)
+        ++ "-"
+        -- ++ String.fromInt (Time.toMonth Time.utc time)
+        -- ++ "-"
+        ++ String.fromInt (Time.toDay Time.utc time)
+        ++ " (UTC)"
+
+
 type NaiveDateTime
     = NaiveDateTime String
+
+
+type alias JulianDay =
+    Float
+
+
+type alias RataDie =
+    Int
 
 
 type alias TR =
@@ -272,27 +303,52 @@ monthToInt month =
             12
 
 
-julianDayNumber : Posix -> Float
-julianDayNumber posix =
+julianDayFromPosix : Posix -> JulianDay
+julianDayFromPosix posix =
     let
         y =
-            Time.toYear Time.utc posix |> toFloat
+            Debug.log "y" <|
+                (Time.toYear Time.utc posix
+                    |> toFloat
+                )
 
         m =
-            Time.toMonth Time.utc posix |> monthToInt |> toFloat
+            Debug.log "m" <|
+                (Time.toMonth Time.utc posix
+                    |> monthToInt
+                    |> toFloat
+                )
 
         d =
-            Time.toDay Time.utc posix |> toFloat
+            Debug.log "d" <|
+                (Time.toDay Time.utc posix
+                    |> toFloat
+                )
     in
     (1461 * (y + 4800 + (m - 14) / 12)) / 4 + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12 - (3 * ((y + 4900 + (m - 14) / 12) / 100)) / 4 + d - 32075
-
-
-rataDieFromPosix : Posix -> Int
-rataDieFromPosix posix =
-    floor (julianDayNumber posix - 1721424.5)
 
 
 
 -- https://www.revolvy.com/page/Rata-Die
 -- https://www.revolvy.com/page/Julian-day?cr=1
 -- RD = floor( JD − 1 721 424.5 )
+
+
+rataDieFromPosix : Posix -> RataDie
+rataDieFromPosix posix =
+    floor (julianDayFromPosix posix - 1721424.5)
+
+
+julianDayFromDate : Int -> Int -> Int -> JulianDay
+julianDayFromDate year month day =
+    let
+        y =
+            toFloat year
+
+        m =
+            toFloat month
+
+        d =
+            toFloat day
+    in
+    (1461 * (y + 4800 + (m - 14) / 12)) / 4 + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12 - (3 * ((y + 4900 + (m - 14) / 12) / 100)) / 4 + d - 32075
