@@ -571,7 +571,7 @@ update msg model =
             in
             ( { model
                 | logFilterString = ""
-                , logs = Log.selectAllWithMeta model.logs |> Log.compileMeta
+                , logs = Log.selectAllWithMeta model.logs |> Log.recompileMeta
                 , maybeCurrentLog = Maybe.map Log.select maybeCurrentLog
               }
             , Cmd.none

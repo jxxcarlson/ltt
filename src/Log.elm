@@ -16,6 +16,7 @@ module Log exposing
     , initialMeta
     , insertEvent
     , kDaysAgo
+    , recompileMeta
     , replace
     , replaceWithMeta
     , select
@@ -496,3 +497,8 @@ compileMeta logList =
                 |> TypedTime.sum
     in
     List.map (\( log, meta ) -> ( log, { meta | fractionOfTotal = TypedTime.divideBy grandTotalTime meta.totalTime } )) logList2
+
+
+recompileMeta : List ( Log, Meta ) -> List ( Log, Meta )
+recompileMeta logListMeta =
+    logListMeta |> List.map Tuple.first |> compileMeta
