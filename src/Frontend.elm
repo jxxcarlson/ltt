@@ -1916,7 +1916,7 @@ changeEvent maybeUser note duration event ( log, meta ) logList =
         cmd =
             sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
     in
-    { currentLog = ( newLog_, meta ), logList = newLogs, cmd = cmd }
+    { currentLog = ( newLog_, meta ), logList = Log.recompile newLogs, cmd = cmd }
 
 
 
