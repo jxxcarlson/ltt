@@ -264,6 +264,14 @@ total log =
         |> TypedTime.sum
 
 
+totalSelected : Log -> TypedTime
+totalSelected log =
+    log.data
+        |> List.filter (\evt -> evt.selected)
+        |> List.map .duration
+        |> TypedTime.sum
+
+
 totalFraction : List ( Log, Meta ) -> Float
 totalFraction listLogMeta =
     listLogMeta
@@ -508,6 +516,20 @@ compileMeta logList =
     List.map (\( log, meta ) -> ( log, { meta | fractionOfTotal = TypedTime.divideBy grandTotalTime meta.totalTime } )) logList2
 
 
+compileSelectedMeta : List Log -> List ( Log, Meta )
+compileSelectedMeta logList =
+    let
+        logList2 =
+            List.map (\log -> ( log, { initialMeta | totalTime = totalSelected log } )) logList
+
+        grandTotalTime =
+            logList2
+                |> List.map (\( log, meta ) -> meta.totalTime)
+                |> TypedTime.sum
+    in
+    List.map (\( log, meta ) -> ( log, { meta | fractionOfTotal = TypedTime.divideBy grandTotalTime meta.totalTime } )) logList2
+
+
 recompileMeta : List ( Log, Meta ) -> List ( Log, Meta )
 recompileMeta logListMeta =
-    logListMeta |> List.map Tuple.first |> compileMeta
+    logListMeta |> List.map Tuple.first |> compileSelectedMeta

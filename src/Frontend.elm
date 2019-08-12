@@ -577,6 +577,14 @@ update msg model =
             , Cmd.none
             )
 
+        ApplyFilters ->
+            ( { model
+                -- xxx
+                | logs = model.logs |> Log.recompileMeta
+              }
+            , Cmd.none
+            )
+
         -- TIMER
         TimeChange time ->
             ( { model
@@ -1190,6 +1198,7 @@ viewLog model =
 
                 events2 =
                     Log.bigDateFilter today model.eventCameBeforeString model.eventCameAfterString currentLog.data
+                        |> List.filter (\evt -> evt.selected)
 
                 -- events : List Event
                 -- events =
@@ -1273,6 +1282,7 @@ eventPanel model =
 
                 events2 =
                     Log.bigDateFilter model.currentTime model.eventCameBeforeString model.eventCameAfterString currentLog.data
+                        |> List.filter (\evt -> evt.selected)
 
                 events =
                     case model.filterState of
@@ -1696,6 +1706,7 @@ filterPanel model =
             , displayShiftedDate model.eventCameBeforeString model.currentTime
             ]
         , inputEventCameBeforeFilter model
+        , applyFilters
 
         --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
@@ -1706,6 +1717,14 @@ clearFilters =
     Input.button Style.smallButton
         { onPress = Just ClearFilters
         , label = text "Clear filters"
+        }
+
+
+applyFilters : Element FrontendMsg
+applyFilters =
+    Input.button Style.smallButton
+        { onPress = Just ApplyFilters
+        , label = text "Apply filters"
         }
 
 

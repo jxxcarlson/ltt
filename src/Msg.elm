@@ -101,6 +101,7 @@ type FrontendMsg
     | GotChangedLogName String
     | ChangeLogName
     | ClearFilters
+    | ApplyFilters
 
 
 type DeleteLogSafety
