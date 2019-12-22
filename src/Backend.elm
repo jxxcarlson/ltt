@@ -2,13 +2,12 @@ module Backend exposing (Model, app, userList)
 
 import Dict exposing (Dict)
 import Frontend
-import Lamdera.Backend
-import Lamdera.Types exposing (..)
+import Lamdera.Backend exposing (ClientId, sendToFrontend)
 import Log exposing (Log)
 import Maybe.Extra
-import Msg exposing (..)
 import Set exposing (Set)
 import TestData exposing (passwordDict, userDict)
+import Types exposing (..)
 import User exposing (PasswordDict, User, UserDict, UserInfo, Username)
 import UserLog
 
@@ -29,10 +28,7 @@ app =
 
 
 type alias Model =
-    { passwordDict : PasswordDict
-    , userDict : UserDict Log
-    , clients : Set ClientId
-    }
+    Types.BackendModel
 
 
 init : ( Model, Cmd BackendMsg )
@@ -50,15 +46,6 @@ update msg model =
     case msg of
         NoOpBackendMsg ->
             ( model, Cmd.none )
-
-        -- Our sendToFrontend Cmd has completed
-        SentToFrontendResult clientId result ->
-            case result of
-                Ok () ->
-                    ( model, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
 
 
 updateFromFrontend : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
@@ -204,7 +191,7 @@ updateFromFrontend clientId msg model =
 
 sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
 sendToFrontend clientId msg =
-    Lamdera.Backend.sendToFrontend 1000 clientId (\_ -> NoOpBackendMsg) msg
+    Lamdera.Backend.sendToFrontend clientId msg
 
 
 

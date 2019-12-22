@@ -1,23 +1,98 @@
-module Msg exposing
+module Types exposing
     ( AppMode(..)
+    , BackendModel
     , BackendMsg(..)
     , DeleteEventSafety(..)
     , DeleteLogSafety(..)
+    , FrontendModel
     , FrontendMsg(..)
     , TimerCommand(..)
+    , TimerState(..)
     , ToBackend(..)
     , ToFrontend(..)
     , ValidationState(..)
+    , Visibility(..)
     )
 
 import Browser exposing (UrlRequest(..))
-import Lamdera.Types exposing (ClientId, WsError)
+import Lamdera.Frontend exposing (ClientId)
 import Log exposing (Event, EventGrouping(..), Log, Meta)
+import Set exposing (Set)
 import Time exposing (Posix)
 import TypedTime exposing (..)
 import Url exposing (Url)
-import User exposing (User)
+import User exposing (PasswordDict, User, UserDict)
 import UserLog exposing (UserStats)
+
+
+type alias BackendModel =
+    { passwordDict : PasswordDict
+    , userDict : UserDict Log
+    , clients : Set ClientId
+    }
+
+
+type alias FrontendModel =
+    { input : String
+    , appMode : AppMode
+    , message : String
+    , visibilityOfLogList : Visibility
+
+    -- ADMIN
+    , userStats : UserStats
+
+    -- USER
+    , currentUser : Maybe User
+    , username : String
+    , password : String
+    , newPassword1 : String
+    , newPassword2 : String
+    , email : String
+    , userList : List User
+
+    -- EVENTS
+    , changedEventDurationString : String
+    , changedEventDateString : String
+    , deleteEventSafety : DeleteEventSafety
+    , eventDurationString : String
+    , eventCameBeforeString : String
+    , eventCameAfterString : String
+    , maybeCurrentEvent : Maybe Event
+    , filterState : EventGrouping
+
+    --, dateFilters : List DateFilter
+    -- LOGS
+    , logs : List ( Log, Meta )
+    , grandTotalTime : TypedTime
+    , newLogName : String
+    , changedLogName : String
+    , maybeCurrentLog : Maybe ( Log, Meta )
+    , logFilterString : String
+    , deleteLogSafety : DeleteLogSafety
+
+    -- TIMER
+    , beginTime : Maybe Posix
+    , currentTime : Posix
+    , elapsedTime : TypedTime
+    , accumulatedTime : TypedTime
+    , doUpdateElapsedTime : Bool
+    , timerState : TimerState
+
+    --
+    , timeZoneOffset : Int
+    , outputUnit : Unit
+    }
+
+
+type Visibility
+    = Visible
+    | Hidden
+
+
+type TimerState
+    = TSInitial
+    | TSRunning
+    | TSPaused
 
 
 type ToBackend
@@ -49,7 +124,6 @@ type ToFrontend
 
 type BackendMsg
     = NoOpBackendMsg
-    | SentToFrontendResult ClientId (Result WsError ())
 
 
 type FrontendMsg
@@ -60,7 +134,6 @@ type FrontendMsg
       -- App
     | SetAppMode AppMode
     | SendUserLogs User
-    | SentToBackendResult (Result WsError ())
       -- User
     | GotUserName String
     | GotPassword String

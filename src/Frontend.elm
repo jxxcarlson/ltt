@@ -17,15 +17,14 @@ import Element.Font as Font
 import Element.Input as Input
 import Graph exposing (Option(..))
 import Html exposing (Html, time)
-import Lamdera.Frontend as Frontend
-import Lamdera.Types exposing (..)
+import Lamdera.Frontend exposing (sendToBackend)
 import Log exposing (DateFilter(..), Event, EventGrouping(..), Log, Meta)
-import Msg exposing (AppMode(..), BackendMsg(..), DeleteEventSafety(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), ToBackend(..), ToFrontend(..), ValidationState(..))
 import Style
 import Task
 import TestData exposing (..)
 import Time exposing (Posix)
 import TypedTime exposing (..)
+import Types exposing (AppMode(..), BackendMsg(..), DeleteEventSafety(..), DeleteLogSafety(..), FrontendMsg(..), TimerCommand(..), TimerState(..), ToBackend(..), ToFrontend(..), ValidationState(..), Visibility(..))
 import Url exposing (Url)
 import User exposing (User, Username)
 import UserLog exposing (UserStats)
@@ -34,7 +33,7 @@ import XDateTime
 
 
 app =
-    Frontend.application
+    Lamdera.Frontend.application
         { init = \_ _ -> init
         , onUrlRequest = ClickLink
         , onUrlChange = ChangeUrl
@@ -55,11 +54,6 @@ app =
 --
 
 
-type Visibility
-    = Visible
-    | Hidden
-
-
 toggleVisibility : Visibility -> Visibility
 toggleVisibility vis =
     case vis of
@@ -70,12 +64,6 @@ toggleVisibility vis =
             Visible
 
 
-type TimerState
-    = TSInitial
-    | TSRunning
-    | TSPaused
-
-
 
 --
 -- MODEL
@@ -83,55 +71,7 @@ type TimerState
 
 
 type alias Model =
-    { input : String
-    , appMode : AppMode
-    , message : String
-    , visibilityOfLogList : Visibility
-
-    -- ADMIN
-    , userStats : UserStats
-
-    -- USER
-    , currentUser : Maybe User
-    , username : String
-    , password : String
-    , newPassword1 : String
-    , newPassword2 : String
-    , email : String
-    , userList : List User
-
-    -- EVENTS
-    , changedEventDurationString : String
-    , changedEventDateString : String
-    , deleteEventSafety : DeleteEventSafety
-    , eventDurationString : String
-    , eventCameBeforeString : String
-    , eventCameAfterString : String
-    , maybeCurrentEvent : Maybe Event
-    , filterState : EventGrouping
-
-    --, dateFilters : List DateFilter
-    -- LOGS
-    , logs : List ( Log, Meta )
-    , grandTotalTime : TypedTime
-    , newLogName : String
-    , changedLogName : String
-    , maybeCurrentLog : Maybe ( Log, Meta )
-    , logFilterString : String
-    , deleteLogSafety : DeleteLogSafety
-
-    -- TIMER
-    , beginTime : Maybe Posix
-    , currentTime : Posix
-    , elapsedTime : TypedTime
-    , accumulatedTime : TypedTime
-    , doUpdateElapsedTime : Bool
-    , timerState : TimerState
-
-    --
-    , timeZoneOffset : Int
-    , outputUnit : Unit
-    }
+    Types.FrontendModel
 
 
 
@@ -193,16 +133,16 @@ initialModel =
 
 init : ( Model, Cmd FrontendMsg )
 init =
-    ( initialModel, sendToBackend timeoutInMs SentToBackendResult ClientJoin )
+    ( initialModel, sendToBackend ClientJoin )
 
 
 timeoutInMs =
     5 * 1000
 
 
-sendToBackend : Milliseconds -> (Result WsError () -> FrontendMsg) -> ToBackend -> Cmd FrontendMsg
+sendToBackend : ToBackend -> Cmd FrontendMsg
 sendToBackend =
-    Frontend.sendToBackend
+    Lamdera.Frontend.sendToBackend
 
 
 subscriptions model =
@@ -270,7 +210,7 @@ updateFromBackend msg model =
 
                 Just user ->
                     ( { model | currentUser = Just user, appMode = Logging }
-                    , sendToBackend timeoutInMs SentToBackendResult (RequestLogs (Just user))
+                    , sendToBackend (RequestLogs (Just user))
                     )
 
 
@@ -282,7 +222,7 @@ update msg model =
 
         -- ADMIN
         AdminCleanData ->
-            ( model, sendToBackend timeoutInMs SentToBackendResult CleanData )
+            ( model, sendToBackend CleanData )
 
         SendUsers ->
             case currentUserIsAdmin model of
@@ -291,14 +231,11 @@ update msg model =
 
                 True ->
                     ( model
-                    , sendToBackend timeoutInMs SentToBackendResult RequestUsers
+                    , sendToBackend RequestUsers
                     )
 
         -- BACKEND
         SendUserLogs userId ->
-            ( model, Cmd.none )
-
-        SentToBackendResult result ->
             ( model, Cmd.none )
 
         -- URL (NOT USED)
@@ -320,8 +257,8 @@ update msg model =
                     case mode of
                         Admin ->
                             Cmd.batch
-                                [ sendToBackend timeoutInMs SentToBackendResult RequestUsers
-                                , sendToBackend timeoutInMs SentToBackendResult GetUserStats
+                                [ sendToBackend RequestUsers
+                                , sendToBackend GetUserStats
                                 ]
 
                         _ ->
@@ -394,7 +331,7 @@ update msg model =
 
                         Just user ->
                             ( { model | message = "OK" }
-                            , sendToBackend timeoutInMs SentToBackendResult (SendChangePasswordInfo user.username model.password model.newPassword1)
+                            , sendToBackend (SendChangePasswordInfo user.username model.password model.newPassword1)
                             )
 
                 errorList ->
@@ -404,7 +341,7 @@ update msg model =
             ( { model | email = str }, Cmd.none )
 
         SignIn ->
-            ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignInInfo model.username model.password) )
+            ( initialModel, sendToBackend (SendSignInInfo model.username model.password) )
 
         SignUp ->
             let
@@ -416,7 +353,7 @@ update msg model =
                     ( { model | message = String.join ", " signUpErrors }, Cmd.none )
 
                 False ->
-                    ( initialModel, sendToBackend timeoutInMs SentToBackendResult (SendSignUpInfo model.username model.password model.email) )
+                    ( initialModel, sendToBackend (SendSignUpInfo model.username model.password model.email) )
 
         SignOut ->
             ( initialModel, Cmd.none )
@@ -525,7 +462,7 @@ update msg model =
                         | logs = Log.replaceWithMeta ( changedLog, meta ) model.logs
                         , maybeCurrentLog = Just ( changedLog, meta )
                       }
-                    , sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog model.currentUser changedLog)
+                    , sendToBackend (BEUpdateLog model.currentUser changedLog)
                     )
 
         -- LOG
@@ -540,7 +477,7 @@ update msg model =
                             ( newLog_, Log.initialMeta )
                     in
                     ( { model | maybeCurrentLog = Just newLogMeta, logs = newLogMeta :: model.logs }
-                    , sendToBackend timeoutInMs SentToBackendResult (CreateLog model.currentUser newLog_)
+                    , sendToBackend (CreateLog model.currentUser newLog_)
                     )
 
         DeleteCurrentLog ->
@@ -550,7 +487,7 @@ update msg model =
 
                 Just ( log, meta ) ->
                     ( { model | maybeCurrentLog = Nothing, deleteLogSafety = DeleteLogSafetyOn }
-                    , sendToBackend timeoutInMs SentToBackendResult (DeleteLog model.currentUser log)
+                    , sendToBackend (DeleteLog model.currentUser log)
                     )
 
         ChangeLogName ->
@@ -563,7 +500,7 @@ update msg model =
                         changedLog =
                             { log | name = model.changedLogName }
                     in
-                    ( { model | logs = Log.replaceWithMeta ( changedLog, meta ) model.logs }, sendToBackend timeoutInMs SentToBackendResult (SendChangeLogName model.currentUser model.changedLogName log) )
+                    ( { model | logs = Log.replaceWithMeta ( changedLog, meta ) model.logs }, sendToBackend (SendChangeLogName model.currentUser model.changedLogName log) )
 
         GotNewLogName str ->
             ( { model | newLogName = str }, Cmd.none )
@@ -1963,7 +1900,7 @@ addEvent maybeUser duration currentTime ( log, meta ) logList =
             Log.replaceWithMeta ( newLog_, newMeta ) logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
+            sendToBackend (BEUpdateLog maybeUser newLog_)
     in
     { currentLog = ( newLog_, newMeta ), logList = newLogs, cmd = cmd }
 
@@ -1988,7 +1925,7 @@ changeEvent maybeUser note duration event ( log, meta ) logList =
             Log.replaceWithMeta ( newLog_, meta ) logList
 
         cmd =
-            sendToBackend timeoutInMs SentToBackendResult (BEUpdateLog maybeUser newLog_)
+            sendToBackend (BEUpdateLog maybeUser newLog_)
     in
     { currentLog = ( newLog_, meta ), logList = newLogs, cmd = cmd }
 
