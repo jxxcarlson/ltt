@@ -46,6 +46,14 @@ zero =
     TypedTime Seconds 0
 
 
+{-|
+
+    tt : List TypedTime
+    tt = [TypedTime Seconds 30, TypedTime Minutes 1]
+    sum tt
+    --> TypedTime Seconds 90
+
+-}
 sum : List TypedTime -> TypedTime
 sum timeList =
     timeList

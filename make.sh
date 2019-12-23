@@ -1,2 +1,2 @@
-lamdera make src/Frontend.elm
-lamdera make src/Backend.elm
+lamdera make --optimize src/Frontend.elm
+lamdera make --optimize  src/Backend.elm
