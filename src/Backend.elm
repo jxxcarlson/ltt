@@ -50,12 +50,17 @@ update msg model =
             ( model, Cmd.none )
 
 
-updateFromFrontend : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
-updateFromFrontend clientId msg model =
+
+-- updateFromFrontend : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+
+
+updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontend sessionId clientId msg model =
     case msg of
         NoOpToBackend ->
-            ( model, Cmd.none )
+            ( model, sendToFrontend clientId (SendUserList (userList model.userDict)) )
 
+        -- ( model, Cmd.none )
         RequestUsers ->
             ( model, sendToFrontend clientId (SendUserList (userList model.userDict)) )
 
