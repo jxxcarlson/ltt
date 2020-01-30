@@ -17,7 +17,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Graph exposing (Option(..))
 import Html exposing (Html, time)
-import Lamdera.Frontend exposing (sendToBackend)
+import Lamdera exposing (sendToBackend)
 import Log exposing (DateFilter(..), Event, EventGrouping(..), Log, Meta)
 import Style
 import Task
@@ -33,7 +33,7 @@ import XDateTime
 
 
 app =
-    Lamdera.Frontend.application
+    Lamdera.frontend
         { init = \_ _ -> init
         , onUrlRequest = ClickLink
         , onUrlChange = ChangeUrl
@@ -142,7 +142,7 @@ timeoutInMs =
 
 sendToBackend : ToBackend -> Cmd FrontendMsg
 sendToBackend =
-    Lamdera.Frontend.sendToBackend
+    Lamdera.sendToBackend
 
 
 subscriptions model =

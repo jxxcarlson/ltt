@@ -15,7 +15,7 @@ module Types exposing
     )
 
 import Browser exposing (UrlRequest(..))
-import Lamdera.Frontend exposing (ClientId)
+import Lamdera exposing (ClientId)
 import Log exposing (Event, EventGrouping(..), Log, Meta)
 import Set exposing (Set)
 import Time exposing (Posix)

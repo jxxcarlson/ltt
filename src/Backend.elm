@@ -1,8 +1,10 @@
 module Backend exposing (Model, app, userList)
 
+-- import Frontend
+-- import Lamdera exposing (ClientId, sendToFrontend)
+
 import Dict exposing (Dict)
-import Frontend
-import Lamdera.Backend exposing (ClientId, sendToFrontend)
+import Lamdera exposing (ClientId, SessionId)
 import Log exposing (Log)
 import Maybe.Extra
 import Set exposing (Set)
@@ -13,7 +15,7 @@ import UserLog
 
 
 app =
-    Lamdera.Backend.application
+    Lamdera.backend
         { init = init
         , update = update
         , subscriptions = \m -> Sub.none
@@ -191,7 +193,7 @@ updateFromFrontend clientId msg model =
 
 sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
 sendToFrontend clientId msg =
-    Lamdera.Backend.sendToFrontend clientId msg
+    Lamdera.sendToFrontend clientId msg
 
 
 
