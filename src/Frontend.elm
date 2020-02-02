@@ -1058,8 +1058,8 @@ masterLogView model =
         , column [ spacing 12 ]
             [ row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
             , row [ spacing 12 ]
-                [ showIf (model.maybeCurrentLog /= Nothing) (changeLogNameControls model)
-                , showIf (model.maybeCurrentLog /= Nothing) (deleteLogControls model)
+                [-- showIf (model.maybeCurrentLog /= Nothing) (changeLogNameControls model)
+                 --  , showIf (model.maybeCurrentLog /= Nothing) (deleteLogControls model)
                 ]
             ]
         ]
