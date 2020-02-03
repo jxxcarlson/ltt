@@ -1625,7 +1625,7 @@ adminView_ model user =
                   , width = px 80
 
                   --, view = \k usr -> el [ Font.size 12 ] (text <| displayNumberOfEvents usr.username model.userStats)
-                  , view = \k user -> el [ Font.size 12 ] (text <| user.password)
+                  , view = \k usr -> el [ Font.size 12 ] (text <| usr.password)
                   }
                 ]
             }
