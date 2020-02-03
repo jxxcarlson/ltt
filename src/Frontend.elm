@@ -1083,6 +1083,7 @@ masterLogView : Model -> Element FrontendMsg
 masterLogView model =
     column Style.logColumn
         [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        , showIf (model.visibilityOfLogList /= Visible) (beforeAndAfterFilters model)
         , row []
             [ logsAndEventsPanel model
             , eventPanel model
@@ -1287,6 +1288,7 @@ eventPanel model =
                 [ Font.size 12
                 , spacing 36
                 , moveRight 40
+                , moveUp 45
                 , width (px 450)
                 , Background.color (Style.makeGrey 0.65)
                 , paddingXY 50 30
