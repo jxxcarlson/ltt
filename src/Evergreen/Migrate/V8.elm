@@ -3,11 +3,12 @@ module Evergreen.Migrate.V8 exposing (backendModel, backendMsg, frontendModel, f
 import Evergreen.Type.V1 as Old
 import Evergreen.Type.V8 as New
 import Lamdera.Migrations exposing (..)
+import Types as New
 
 
 frontendModel : Old.FrontendModel -> ModelMigration New.FrontendModel New.FrontendMsg
 frontendModel old =
-    MsgUnchanged
+    ModelUnchanged
 
 
 backendModel : Old.BackendModel -> ModelMigration New.BackendModel New.BackendMsg
