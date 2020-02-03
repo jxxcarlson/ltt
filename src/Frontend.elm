@@ -673,7 +673,7 @@ userValidationView model =
 noUserView : Model -> Element FrontendMsg
 noUserView model =
     column Style.mainColumnX
-        [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome!")
+        [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome to Lamder Time Logger")
         , inputUserName model
         , inputPassword model
         , showIf (model.appMode == UserValidation SignUpState) (inputEmail model)
