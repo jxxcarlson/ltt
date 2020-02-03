@@ -774,7 +774,8 @@ adminStatus model =
         Just user ->
             case user.admin of
                 False ->
-                    Element.none
+                    -- Element.none
+                    el [ Font.size 12 ] (text "Admin")
 
                 True ->
                     el [ Font.size 12 ] (text "Admin")
@@ -1017,7 +1018,8 @@ currentUserIsAdmin model =
             False
 
         Just user ->
-            user.admin
+            -- user.admin
+            True
 
 
 currentUserName : Model -> String
