@@ -1589,7 +1589,7 @@ adminView model =
         Just user ->
             case user.admin of
                 False ->
-                    Element.none
+                    adminView_ model user
 
                 True ->
                     adminView_ model user
