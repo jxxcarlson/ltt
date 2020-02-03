@@ -35,8 +35,8 @@ type alias Model =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { passwordDict = TestData.passwordDict
-      , userDict = TestData.userDict
+    ( { passwordDict = Dict.empty
+      , userDict = Dict.empty
       , clients = Set.empty
       }
     , Cmd.none
