@@ -985,9 +985,16 @@ header model =
         , userValidationModeButton model
         , showIf (model.currentUser /= Nothing) (loggingModeButton model)
         , showIf (model.currentUser /= Nothing) (editingModeButton model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Editing) (deleteLogButton model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Editing) (changeLogNameControls model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (newLogControls model)
         , showIf (model.currentUser /= Nothing && model.appMode == Logging) (toggleLogsButton model)
         , el [ centerX, Font.size 18, Font.color Style.white ] (text <| "Time Log" ++ currentUserName model)
         ]
+
+
+newLogControls model =
+    row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
 
 
 currentUserIsAdmin : Model -> Bool
@@ -1069,13 +1076,6 @@ masterLogView model =
             , eventListDisplay model
             , eventPanel model
             ]
-        , column [ spacing 12 ]
-            [ row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
-            , row [ spacing 12 ]
-                [-- showIf (model.maybeCurrentLog /= Nothing) (changeLogNameControls model)
-                 --  , showIf (model.maybeCurrentLog /= Nothing) (deleteLogControls model)
-                ]
-            ]
         ]
 
 
@@ -1102,17 +1102,6 @@ editingView model =
             , eventListDisplay model
             , logEventPanel model
             ]
-        , column [ spacing 12 ]
-            [ logControls model
-            , deleteLogButton model
-            ]
-        ]
-
-
-logControls model =
-    row [ spacing 12 ]
-        [ showIf (model.maybeCurrentLog /= Nothing) changeLogNameButton
-        , inputChangeLogName model
         ]
 
 
@@ -1690,8 +1679,6 @@ filterPanel model =
             ]
         , inputEventCameBeforeFilter model
         , applyFilters
-
-        --, row [ alignRight, moveRight 36, spacing 12 ] [ editModeButton sharedState model, logModeButton model ]
         ]
 
 
@@ -1715,7 +1702,7 @@ displayShiftedDate : String -> Posix -> Element FrontendMsg
 displayShiftedDate kDaysAgoString today =
     case String.toInt kDaysAgoString of
         Nothing ->
-            el [ width (px 75), Font.bold, Font.size 14 ] (text "(days)")
+            el [ width (px 75), Font.bold, Font.size 14 ] (text "")
 
         Just k ->
             let
