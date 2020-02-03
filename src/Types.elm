@@ -81,6 +81,7 @@ type alias FrontendModel =
     --
     , timeZoneOffset : Int
     , outputUnit : Unit
+    , fooBar : String
     }
 
 

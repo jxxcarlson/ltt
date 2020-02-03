@@ -128,6 +128,7 @@ initialModel =
     , timerState = TSInitial
     , filterState = NoGrouping
     , outputUnit = Hours
+    , fooBar = "yada yada!"
     }
 
 

@@ -10,8 +10,7 @@ import User exposing (PasswordDict, UserDict, UserInfo)
 passwordDict : PasswordDict
 passwordDict =
     Dict.fromList
-        [ ( "jxxcarlson", "!@oboLocol@!" )
-        , ( "socrates", "!@citpeks@!" )
+        [ ( "jxxcarlson", "!@5974obol@!" )
         ]
 
 
@@ -19,7 +18,6 @@ userDict : UserDict Log
 userDict =
     Dict.fromList
         [ ( "jxxcarlson", userInfo1 )
-        , ( "socrates", userInfo2 )
         ]
 
 
