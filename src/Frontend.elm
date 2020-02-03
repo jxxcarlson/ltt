@@ -1623,9 +1623,7 @@ adminView_ model user =
                   }
                 , { header = el [ Font.bold ] (text "Events")
                   , width = px 80
-
-                  --, view = \k usr -> el [ Font.size 12 ] (text <| displayNumberOfEvents usr.username model.userStats)
-                  , view = \k usr -> el [ Font.size 12 ] (text <| usr.password)
+                  , view = \k usr -> el [ Font.size 12 ] (text <| displayNumberOfEvents usr.username model.userStats)
                   }
                 ]
             }

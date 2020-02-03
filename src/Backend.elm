@@ -185,7 +185,7 @@ updateFromFrontend sessionId clientId msg model =
         CleanData ->
             let
                 ( p, u ) =
-                    User.deleteUser "" ( model.passwordDict, model.userDict )
+                    User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
 
                 uu =
                     UserLog.clean "jxxcarlson" u
