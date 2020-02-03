@@ -1306,7 +1306,7 @@ graphPanel model events =
 
 
 eventGraph model events =
-    row [] [ graph model events ]
+    row [ moveLeft 40 ] [ graph model events ]
 
 
 setEventDisplayModePanel model =
