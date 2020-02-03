@@ -110,6 +110,7 @@ type ToBackend
     | SendChangeLogName (Maybe User) String Log
     | BEDeleteEvent (Maybe User) Log Int
     | GetUserStats
+    | SendUserDict
 
 
 type ToFrontend
@@ -142,6 +143,7 @@ type FrontendMsg
     | ChangePassword
     | GotEmail String
     | SignIn
+    | Test
     | SignUp
     | SignOut
       -- Url

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "lamdera live --port=8020",
     "clean": "rm -rf /Users/carlson/.lamdera/*; rm -rf ./lamdera-stuff",
     "build": "lamdera make src/Frontend.elm; lamdera make src/Backend.elm",
     "optimize": "lamdera make --optimize src/Frontend.elm; lamdera make --optimize  src/Backend.elm",

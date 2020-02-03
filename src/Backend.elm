@@ -195,6 +195,13 @@ updateFromFrontend sessionId clientId msg model =
         ClientJoin ->
             ( model, Cmd.none )
 
+        SendUserDict ->
+            -- let
+            --     _ =
+            --         Debug.log "Dict" model.passwordDict
+            -- in
+            ( model, Cmd.none )
+
 
 sendToFrontend : ClientId -> ToFrontend -> Cmd BackendMsg
 sendToFrontend clientId msg =

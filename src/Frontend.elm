@@ -343,6 +343,9 @@ update msg model =
         SignIn ->
             ( initialModel, sendToBackend (SendSignInInfo model.username model.password) )
 
+        Test ->
+            ( model, sendToBackend SendUserDict )
+
         SignUp ->
             let
                 signUpErrors =
@@ -472,11 +475,12 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just newLog_ ->
+                    -- TODO: nuke input string
                     let
                         newLogMeta =
                             ( newLog_, Log.initialMeta )
                     in
-                    ( { model | maybeCurrentLog = Just newLogMeta, logs = newLogMeta :: model.logs }
+                    ( { model | newLogName = "", maybeCurrentLog = Just newLogMeta, logs = newLogMeta :: model.logs }
                     , sendToBackend (CreateLog model.currentUser newLog_)
                     )
 
@@ -680,6 +684,8 @@ noUserView model =
                 [ signUpButton model
                 , showIf (model.appMode == UserValidation SignUpState) (cancelSignUpButton model)
                 ]
+
+            -- , testButton model
             ]
         , el [ Font.size 12 ] (text model.message)
         ]
@@ -808,6 +814,14 @@ signInButton model =
     Input.button Style.headerButton
         { onPress = Just SignIn
         , label = Element.text "Sign in"
+        }
+
+
+testButton : Model -> Element FrontendMsg
+testButton model =
+    Input.button Style.headerButton
+        { onPress = Just Test
+        , label = Element.text "Test"
         }
 
 
