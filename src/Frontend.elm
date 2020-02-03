@@ -637,7 +637,7 @@ view model =
 
 mainView : Model -> Element FrontendMsg
 mainView model =
-    column []
+    column [ width fill, height fill ]
         [ header model
         , case model.appMode of
             UserValidation _ ->
@@ -979,22 +979,34 @@ header model =
         [ width fill
         , paddingXY 40 8
         , Background.color Style.charcoal
-        , spacing 12
+        , spacing 32
         ]
-        [ showIf (currentUserIsAdmin model) (adminModeButton model)
-        , userValidationModeButton model
-        , showIf (model.currentUser /= Nothing) (loggingModeButton model)
-        , showIf (model.currentUser /= Nothing) (editingModeButton model)
-        , showIf (model.currentUser /= Nothing && model.appMode == Editing) (deleteLogButton model)
-        , showIf (model.currentUser /= Nothing && model.appMode == Editing) (changeLogNameControls model)
-        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (newLogControls model)
-        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (toggleLogsButton model)
+        [ modelControls model
+        , controls model
         , el [ centerX, Font.size 18, Font.color Style.white ] (text <| "Time Log" ++ currentUserName model)
         ]
 
 
+controls model =
+    row [ spacing 12 ]
+        [ showIf (model.currentUser /= Nothing && model.appMode == Editing) (deleteLogButton model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Editing) (changeLogNameControls model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (newLogControls model)
+        , showIf (model.currentUser /= Nothing && model.appMode == Logging) (toggleLogsButton model)
+        ]
+
+
+modelControls model =
+    row [ spacing 8 ]
+        [ showIf (currentUserIsAdmin model) (adminModeButton model)
+        , userValidationModeButton model
+        , showIf (model.currentUser /= Nothing) (loggingModeButton model)
+        , showIf (model.currentUser /= Nothing) (editingModeButton model)
+        ]
+
+
 newLogControls model =
-    row [ spacing 12 ] [ newLogButton, inputNewLogName model ]
+    row [ spacing 2 ] [ newLogButton, inputNewLogName model ]
 
 
 currentUserIsAdmin : Model -> Bool
@@ -1069,13 +1081,19 @@ editingModeButton model =
 
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
-    column Style.mainColumnX
+    column Style.logColumn
         [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
         , row []
-            [ showIf (model.visibilityOfLogList == Visible) (logListPanel model)
-            , eventListDisplay model
+            [ logsAndEventsPanel model
             , eventPanel model
             ]
+        ]
+
+
+logsAndEventsPanel model =
+    row []
+        [ showIf (model.visibilityOfLogList == Visible) (logListPanel model)
+        , eventListDisplay model
         ]
 
 
@@ -1265,14 +1283,35 @@ eventPanel model =
                         GroupByDay ->
                             Log.eventsByDay events2
             in
-            column [ Font.size 12, spacing 36, moveRight 40, width (px 400) ]
-                [ row [ moveLeft 40 ] [ graph model events ]
-                , row [ spacing 16 ]
-                    [ row [ spacing 8 ] [ setMinutesButton model, setHoursButton model ]
-                    , row [ spacing 8 ] [ el [ Font.bold, Font.size 14 ] (text "Group:"), noFilterButton model, filterByDayButton model ]
-                    ]
+            column
+                [ Font.size 12
+                , spacing 36
+                , moveRight 40
+                , width (px 450)
+                , Background.color (Style.makeGrey 0.65)
+                , paddingXY 50 30
+                ]
+                [ graphPanel model events
                 , newEventPanel 350 model
                 ]
+
+
+graphPanel model events =
+    column [ centerX, Background.color (Style.makeGrey 0.8), paddingXY 30 20 ]
+        [ eventGraph model events
+        , setEventDisplayModePanel model
+        ]
+
+
+eventGraph model events =
+    row [] [ graph model events ]
+
+
+setEventDisplayModePanel model =
+    row [ spacing 16 ]
+        [ row [ spacing 8 ] [ setMinutesButton model, setHoursButton model ]
+        , row [ spacing 8 ] [ el [ Font.bold, Font.size 14 ] (text "Group:"), noFilterButton model, filterByDayButton model ]
+        ]
 
 
 logEventPanel model =
@@ -1312,9 +1351,14 @@ graph model events_ =
 newEventPanel : Int -> Model -> Element FrontendMsg
 newEventPanel w model =
     column [ spacing 24, width (px w) ]
-        [ row [ Border.width 1, padding 12, spacing 12, width (px 300) ] [ submitEventButton, inputEventDuration model ]
+        [ submitTimePanel model
         , largeElapsedTimePanel model
         ]
+
+
+submitTimePanel model =
+    row [ centerX, padding 12, spacing 12, width (px 300), Background.color (Style.makeGrey 0.4) ]
+        [ submitEventButton, inputEventDuration model ]
 
 
 prepareData : Float -> List Event -> List Float
@@ -1384,7 +1428,7 @@ filterByDayButton model =
 
 largeElapsedTimePanel : Model -> Element FrontendMsg
 largeElapsedTimePanel model =
-    column [ spacing 12, Border.width 1, padding 12, width (px 300) ]
+    column [ centerX, spacing 12, padding 12, width (px 300), Background.color (Style.makeGrey 0.4) ]
         [ timerDisplay model
         , timerControls model
         ]
@@ -1617,8 +1661,8 @@ gA model =
         yTickMarks_ =
             4
     in
-    { graphHeight = 200
-    , graphWidth = 400
+    { graphHeight = 150
+    , graphWidth = 300
     , options = [ Color "blue", XTickmarks 7, YTickmarks yTickMarks_, DeltaX 10 ]
     }
 
@@ -1664,21 +1708,40 @@ eventListDisplay model =
 
 
 filterPanel model =
+    row [ spacing 16 ]
+        [ nameFilter model
+        , beforeAndAfterFilters model
+        ]
+
+
+nameFilter model =
     row [ spacing 8 ]
-        [ el [ Font.bold ] (text "Filter:")
+        [ el [ Font.bold ] (text "Filter")
         , inputLogNameFilter model
         , clearFilters
-        , row [ spacing 8 ]
-            [ el [ Font.bold, Font.size 14 ] (text "After")
-            , displayShiftedDate model.eventCameAfterString model.currentTime
-            ]
+        ]
+
+
+beforeAndAfterFilters model =
+    row [ spacing 16 ]
+        [ beforeFilter model
+        , afterFilter model
+        ]
+
+
+afterFilter model =
+    row [ spacing 8 ]
+        [ el [ Font.size 14 ] (text "After")
         , inputEventCameAfterFilter model
-        , row [ spacing 8 ]
-            [ el [ Font.bold, Font.size 14 ] (text "Before")
-            , displayShiftedDate model.eventCameBeforeString model.currentTime
-            ]
+        , displayShiftedDate model.eventCameAfterString model.currentTime
+        ]
+
+
+beforeFilter model =
+    row [ spacing 8 ]
+        [ el [ Font.size 14 ] (text "Before")
         , inputEventCameBeforeFilter model
-        , applyFilters
+        , displayShiftedDate model.eventCameBeforeString model.currentTime
         ]
 
 
@@ -1686,7 +1749,7 @@ clearFilters : Element FrontendMsg
 clearFilters =
     Input.button Style.smallButton
         { onPress = Just ClearFilters
-        , label = text "Clear filters"
+        , label = text "Clear"
         }
 
 

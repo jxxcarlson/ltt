@@ -10,6 +10,7 @@ module Style exposing
     , dangerousButton
     , darkBlue
     , darkRed
+    , editingColumn
     , footer
     , footerForPhone
     , footerItem
@@ -19,6 +20,7 @@ module Style exposing
     , inputStyle
     , lightGrey
     , listElementButtonStyleWithWidth2
+    , logColumn
     , mainColumn
     , mainColumn2
     , mainColumnPhone
@@ -152,7 +154,7 @@ activeButtonDarkRed active =
 
 
 smallButton =
-    [ Background.color black, Font.color grey, Font.size 12, Element.paddingXY 6 4, alignRight ] ++ basicButtonsStyle
+    [ Background.color charcoal, Font.color grey, Font.size 12, Element.paddingXY 6 4, alignRight ] ++ basicButtonsStyle
 
 
 smallButtonRed =
@@ -164,7 +166,15 @@ mainColumn w h =
 
 
 mainColumnX =
+    mainColumn fill fill ++ [ spacing 12, padding 20, Background.color (makeGrey 0.9) ]
+
+
+editingColumn =
     mainColumn fill fill ++ [ spacing 12, padding 40, Background.color (makeGrey 0.9) ]
+
+
+logColumn =
+    mainColumn fill fill ++ [ spacing 0, padding 40, Background.color (makeGrey 0.9) ]
 
 
 mainColumn2 w h =
