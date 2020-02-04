@@ -192,12 +192,7 @@ updateFromFrontend sessionId clientId msg model =
                 result =
                     User.addAdmin "jxxcarlson" "lobo4795" "jxxcarlson@gmail.com" ( model.passwordDict, model.userDict )
             in
-            case result of
-                Err _ ->
-                    ( model, Cmd.none )
-
-                Ok ( p, u ) ->
-                    ( { model | passwordDict = p, userDict = u }, Cmd.none )
+            ( model, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )
