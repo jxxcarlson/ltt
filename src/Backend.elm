@@ -184,13 +184,20 @@ updateFromFrontend sessionId clientId msg model =
 
         CleanData ->
             let
-                ( p, u ) =
-                    User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
-
-                uu =
-                    UserLog.clean "jxxcarlson" u
+                -- ( p, u ) =
+                --     User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
+                --
+                -- uu =
+                --     UserLog.clean "jxxcarlson" u
+                result =
+                    User.addAdmin "jxxcarlson" "lobo4795" "jxxcarlson@gmail.com" ( model.passwordDict, model.userDict )
             in
-            ( { model | passwordDict = p, userDict = uu }, Cmd.none )
+            case result of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok ( p, u ) ->
+                    ( { model | passwordDict = p, userDict = u }, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )
