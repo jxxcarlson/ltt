@@ -1083,7 +1083,7 @@ editingModeButton model =
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
     column Style.logColumn
-        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        [ showIf (model.visibilityOfLogList == Visible && model.logs /= []) (filterPanel model)
         , showIf (model.visibilityOfLogList /= Visible) (beforeAndAfterFilters model)
         , row []
             [ logsAndEventsPanel model
