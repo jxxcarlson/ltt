@@ -184,13 +184,11 @@ updateFromFrontend sessionId clientId msg model =
 
         CleanData ->
             let
-                -- ( p, u ) =
-                --     User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
-                --
-                -- uu =
-                --     UserLog.clean "jxxcarlson" u
-                result =
-                    User.addAdmin "jxxcarlson" "lobo4795" "jxxcarlson@gmail.com" ( model.passwordDict, model.userDict )
+                ( p, u ) =
+                    User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
+
+                uu =
+                    UserLog.clean "jxxcarlson" u
             in
             ( model, Cmd.none )
 
