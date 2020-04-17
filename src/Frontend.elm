@@ -81,7 +81,7 @@ type alias Model =
 
 
 initialModel =
-    { input = "App started"
+    { input = "App started (yay!)"
     , message = "Please sign in"
     , appMode = UserValidation SignInState
 
