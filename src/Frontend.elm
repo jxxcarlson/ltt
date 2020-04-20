@@ -128,6 +128,7 @@ initialModel =
     , timerState = TSInitial
     , filterState = NoGrouping
     , outputUnit = Hours
+    , fooBar = "yada yada!"
     }
 
 
@@ -673,7 +674,7 @@ userValidationView model =
 noUserView : Model -> Element FrontendMsg
 noUserView model =
     column Style.mainColumnX
-        [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome to Lamder Time Logger")
+        [ el [ Font.size 18, Font.bold, paddingXY 0 12 ] (text "Welcome to Lamdera Time Logger")
         , inputUserName model
         , inputPassword model
         , showIf (model.appMode == UserValidation SignUpState) (inputEmail model)
@@ -1082,7 +1083,7 @@ editingModeButton model =
 masterLogView : Model -> Element FrontendMsg
 masterLogView model =
     column Style.logColumn
-        [ showIf (model.visibilityOfLogList == Visible) (filterPanel model)
+        [ showIf (model.visibilityOfLogList == Visible && model.logs /= []) (filterPanel model)
         , showIf (model.visibilityOfLogList /= Visible) (beforeAndAfterFilters model)
         , row []
             [ logsAndEventsPanel model

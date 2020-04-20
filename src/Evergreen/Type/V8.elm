@@ -1,4 +1,4 @@
-module Types exposing
+module Evergreen.Type.V8 exposing
     ( AppMode(..)
     , BackendModel
     , BackendMsg(..)

@@ -35,8 +35,8 @@ type alias Model =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { passwordDict = TestData.passwordDict
-      , userDict = TestData.userDict
+    ( { passwordDict = Dict.empty
+      , userDict = Dict.empty
       , clients = Set.empty
       }
     , Cmd.none
@@ -185,12 +185,12 @@ updateFromFrontend sessionId clientId msg model =
         CleanData ->
             let
                 ( p, u ) =
-                    User.deleteUser "" ( model.passwordDict, model.userDict )
+                    User.deleteUser "jxxcarlson" ( model.passwordDict, model.userDict )
 
                 uu =
                     UserLog.clean "jxxcarlson" u
             in
-            ( { model | passwordDict = p, userDict = uu }, Cmd.none )
+            ( model, Cmd.none )
 
         ClientJoin ->
             ( model, Cmd.none )

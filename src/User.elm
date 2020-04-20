@@ -6,6 +6,7 @@ module User exposing
     , UserInfo
     , Username
     , add
+    , addAdmin
     , deleteUser
     , encrypt
     , fromDict
@@ -140,6 +141,26 @@ add username password email ( passwordDict, userDict ) =
 
                 newUserInfo =
                     { email = email, admin = False, counter = 0, data = [] }
+
+                newUserDict =
+                    Dict.insert username newUserInfo userDict
+            in
+            Ok ( newPasswordDict, newUserDict )
+
+        _ ->
+            Err "user already exists"
+
+
+addAdmin : String -> String -> String -> ( PasswordDict, UserDict a ) -> Result String ( PasswordDict, UserDict a )
+addAdmin username password email ( passwordDict, userDict ) =
+    case ( Dict.member username userDict, passwordErrors password ) of
+        ( False, [] ) ->
+            let
+                newPasswordDict =
+                    Dict.insert username (encrypt password) passwordDict
+
+                newUserInfo =
+                    { email = email, admin = True, counter = 0, data = [] }
 
                 newUserDict =
                     Dict.insert username newUserInfo userDict

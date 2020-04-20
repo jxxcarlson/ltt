@@ -1,4 +1,4 @@
-module Types exposing
+module Evergreen.Type.V1 exposing
     ( AppMode(..)
     , BackendModel
     , BackendMsg(..)
@@ -81,7 +81,6 @@ type alias FrontendModel =
     --
     , timeZoneOffset : Int
     , outputUnit : Unit
-    , fooBar : String
     }
 
 
